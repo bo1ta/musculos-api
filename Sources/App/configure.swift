@@ -6,24 +6,28 @@ import Vapor
 
 // configures your application
 public func configure(_ app: Application) async throws {
-    // uncomment to serve files from /Public folder
-    // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+  // uncomment to serve files from /Public folder
+  // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
-    app.databases.use(DatabaseConfigurationFactory.postgres(configuration: .init(
-        hostname: Environment.get("DATABASE_HOST") ?? "localhost",
-        port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? SQLPostgresConfiguration.ianaPortNumber,
-        username: Environment.get("DATABASE_USERNAME") ?? "vapor_username",
-        password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
-        database: Environment.get("DATABASE_NAME") ?? "vapor_database",
-        tls: .prefer(try .init(configuration: .clientDefault)))
-    ), as: .psql)
+  app.databases.use(DatabaseConfigurationFactory.postgres(configuration: .init(
+    hostname: Environment.get("DATABASE_HOST") ?? "localhost",
+    port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? SQLPostgresConfiguration.ianaPortNumber,
+    username: Environment.get("DATABASE_USERNAME") ?? "johnny",
+    password: Environment.get("DATABASE_PASSWORD") ?? "musculos123!",
+    database: Environment.get("DATABASE_NAME") ?? "musculosdb",
+    tls: .prefer(try .init(configuration: .clientDefault)))
+  ), as: .psql)
+  
+  app.migrations.add(CreateExerciseTableMigration())
+  app.migrations.add(CreateUserTableMigration())
+  app.migrations.add(CreateTokenTableMigration())
+  app.migrations
+    .add(CreateWorkoutTableMigration())
+  app.migrations
+    .add(CreateWorkoutExerciseTableMigration())
 
-    app.migrations.add(CreateTodo())
+  app.views.use(.leaf)
 
-    app.views.use(.leaf)
-
-    
-
-    // register routes
-    try routes(app)
+  // register routes
+  try routes(app)
 }
