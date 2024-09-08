@@ -26,7 +26,7 @@ struct UserController: RouteCollection {
       try await getMyProfile(request)
     }
   }
-  
+
   func register(_ req: Request) async throws -> SessionResponse {
     try User.SignUp.validate(content: req)
 

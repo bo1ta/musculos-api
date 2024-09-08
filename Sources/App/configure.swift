@@ -9,17 +9,21 @@ public func configure(_ app: Application) async throws {
   // uncomment to serve files from /Public folder
   // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
+#if DEBUG && os(macOS)
+  Bundle(path: "/Applications/InjectionIII.app/Contents/Resources/macOSInjection.bundle")?.load()
+#endif
+
   app.databases.use(DatabaseConfigurationFactory.postgres(configuration: .init(
-    hostname: Environment.get("DATABASE_HOST") ?? "localhost",
+    hostname: Environment.get("DATABASE_HOST") ?? "postgres",
     port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? SQLPostgresConfiguration.ianaPortNumber,
     username: Environment.get("DATABASE_USERNAME") ?? "postgres",
-    password: Environment.get("DATABASE_PASSWORD") ?? "",
-    database: Environment.get("DATABASE_NAME") ?? "exercisedb",
+    password: Environment.get("DATABASE_PASSWORD") ?? "password",
+    database: Environment.get("DATABASE_NAME") ?? "exercises",
     tls: .prefer(try .init(configuration: .clientDefault)))
   ), as: .psql)
-  
+
   await app.jwt.keys.add(hmac: .init(stringLiteral: "secret"), digestAlgorithm: .sha256)
-  
+
   try await setupMigrationConfiguration(app)
 
   app.views.use(.leaf)
@@ -35,14 +39,18 @@ fileprivate func setupMigrationConfiguration(_ app: Application) async throws {
     .add(CreateTokenTableMigration())
   app.migrations
     .add(AddExpiresAtAndCreatedAtToTokenMigration())
-//  app.migrations
-//    .add(AddPasswordHashToUserMigration())
+  app.migrations
+    .add(AddPasswordHashToUserMigration())
   app.migrations
     .add(CreateWorkoutTableMigration())
   app.migrations
     .add(CreateWorkoutExerciseTableMigration())
-    app.migrations
-        .add(PopulateExercisesMigration(resourcesDirectory: app.directory.resourcesDirectory))
+  app.migrations
+    .add(AddImageUrlsToUserMigration())
+  app.migrations
+    .add(PopulateExercisesMigration(resourcesDirectory: app.directory.resourcesDirectory))
+  app.migrations
+    .add(PopulateImageUrlsToExercisesMigration())
 
   try await app.autoMigrate()
 }

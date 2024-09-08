@@ -27,7 +27,17 @@ let package = Package(
         .product(name: "Vapor", package: "vapor"),
         .product(name: "JWT", package: "jwt"),
       ],
-      swiftSettings: swiftSettings
+      swiftSettings: swiftSettings,
+      linkerSettings: [.unsafeFlags(
+        [
+          "-Xlinker",
+          "-interposable"
+        ],
+        .when(
+          platforms: [.macOS],
+          configuration: .debug
+        )
+      )]
     ),
     .testTarget(
       name: "AppTests",
@@ -37,7 +47,6 @@ let package = Package(
       ],
       swiftSettings: swiftSettings
     ),
-    
   ]
 )
 
