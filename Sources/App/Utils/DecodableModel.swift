@@ -17,14 +17,14 @@ protocol DecodableModel {
 
 extension DecodableModel where Self: Codable {
   static func createFrom(_ data: Data) throws -> Self {
-  let decoder = JSONDecoder()
-  decoder.keyDecodingStrategy = .convertFromSnakeCase
-  return try decoder.decode(Self.self, from: data)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    return try decoder.decode(Self.self, from: data)
   }
-
+  
   static func createArrayFrom(_ data: Data) throws -> [Self] {
-  let decoder = JSONDecoder()
-  decoder.keyDecodingStrategy = .convertFromSnakeCase
-  return try decoder.decode([Self].self, from: data)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    return try decoder.decode([Self].self, from: data)
   }
 }

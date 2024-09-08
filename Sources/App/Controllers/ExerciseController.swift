@@ -10,14 +10,12 @@ import Vapor
 
 struct ExerciseController: RouteCollection {
   func boot(routes: any RoutesBuilder) throws {
-    var exerciseRoutes = routes
+    let exerciseRoutes = routes
+      .apiV1Group("exercises")
       .grouped(
-        Token.authenticator(),
-        User.guardMiddleware()
+        Token.authenticator()
       )
-      .grouped("exercises")
-    
-    
+
     exerciseRoutes.get(use: { try await self.index(req: $0) })
     exerciseRoutes.post(use: { try await self.create(req: $0) })
   }

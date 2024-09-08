@@ -28,7 +28,7 @@ final class Workout: Model, Content, @unchecked Sendable {
   var workoutExercises: [WorkoutExercise]
   
   init() { }
-  
+
   init(id: UUID? = nil, name: String, targetMuscles: [String], userID: User.IDValue) {
     self.id = id
     self.name = name

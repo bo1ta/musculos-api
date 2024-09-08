@@ -10,39 +10,63 @@ import Vapor
 
 final class Token: Model, Content, @unchecked Sendable {
   static let schema = "tokens"
-  
+
   @ID
   var id: UUID?
-  
+
   @Field(key: "token_value")
   var tokenValue: String
-  
+
+  @Field(key: "expires_at")
+  var expiresAt: Date?
+
+  @Timestamp(key: "created_at", on: .create)
+  var createdAt: Date?
+
   @Parent(key: "user_id")
   var user: User
-  
+
   init() { }
-  
-  init(id: UUID? = nil, tokenValue: String, userID: User.IDValue) {
-  self.id = id
-  self.tokenValue = tokenValue
-  self.$user.id = userID
+
+  init(id: UUID? = nil, userID: User.IDValue, tokenValue: String, expiresAt: Date?) {
+    self.id = id
+    self.$user.id = userID
+    self.expiresAt = expiresAt
+    self.tokenValue = tokenValue
   }
-  
-  static func generate(for user: User) throws -> Token {
-  let randomToken = [UInt8].random(count: 32).base64
-  let userID = try user.requireID()
-  
-  return Token(tokenValue: randomToken, userID: userID)
+
+  static func create(for user: User) throws -> Token {
+    let userID = try user.requireID()
+    let tokenValue = [UInt8].random(count: 32).base64
+    let expiryDate = Calendar(identifier: .gregorian)
+      .date(byAdding: .day, value: 1, to: Date())
+
+    return Token(userID: userID, tokenValue: tokenValue, expiresAt: expiryDate)
+  }
+
+  func asPublic() -> Token.Public {
+    return Token.Public(createdAt: self.createdAt, expiresAt: self.expiresAt, value: self.tokenValue)
   }
 }
 
+extension Token {
+  struct Public: Content {
+    let createdAt: Date?
+    let expiresAt: Date?
+    let value: String
+  }
+}
+
+// MARK: - `ModelTokenAuthenticatable` conformance
+
 extension Token: ModelTokenAuthenticatable {
-  typealias User = App.User
-  
   static let valueKey = \Token.$tokenValue
   static let userKey = \Token.$user
-  
+
   var isValid: Bool {
-  true
+    guard let expiresAt else {
+      return true
+    }
+    return expiresAt > Date()
   }
 }

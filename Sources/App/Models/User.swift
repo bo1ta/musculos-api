@@ -8,6 +8,7 @@
 import Foundation
 import Vapor
 import Fluent
+import JWT
 
 final class User: Model, Content, @unchecked Sendable {
   static let schema: String = "users"
@@ -15,55 +16,64 @@ final class User: Model, Content, @unchecked Sendable {
   @ID(key: .id)
   var id: UUID?
   
-  @Field(key: "full_name")
-  var fullName: String?
-  
   @Field(key: "username")
   var username: String
   
   @Field(key: "email")
   var email: String
   
-  @Field(key: "password")
-  var password: String
+  @Field(key: "password_hash")
+  var passwordHash: String
   
   init() { }
   
   init(
     id: UUID? = nil,
-    fullName: String? = nil,
     username: String,
     email: String,
-    password: String
+    passwordHash: String
   ) {
     self.id = id
-    self.fullName = fullName
     self.username = username
     self.email = email
-    self.password = password
+    self.passwordHash = passwordHash
+  }
+
+  func asPublic() -> User.Public {
+    return User.Public(username: self.username, email: self.email, id: self.id)
   }
 }
 
-extension User: Authenticatable { }
-
-// MARK: - Public class
-
 extension User {
-  final class Public: Content {
-    var id: UUID?
-    var email: String
+  struct SignIn: Content {
+    let email: String
+    let password: String
+  }
+
+  struct SignUp: Content, Validatable {
     var username: String
-    var fullName: String?
-    
-    init(id: UUID? = nil, username: String, email: String, fullName: String? = nil) {
-      self.id = id
-      self.username = username
-      self.email = email
-      self.fullName = fullName
+    var email: String
+    var password: String
+
+    static func validations(_ validations: inout Validations) {
+      validations.add("username", as: String.self, is: !.empty)
+      validations.add("email", as: String.self, is: .email)
+      validations.add("password", as: String.self, is: .count(8...))
     }
   }
-  
-  func toPublic() -> Public {
-    return Public(id: id, username: username, email: email, fullName: fullName)
+
+  struct Public: Content {
+    var username: String
+    var email: String
+    var id: UUID?
+  }
+}
+
+extension User: ModelAuthenticatable {
+  static let usernameKey = \User.$email
+  static let passwordHashKey = \User.$passwordHash
+
+  func verify(password: String) throws -> Bool {
+    try Bcrypt.verify(password, created: self.passwordHash)
   }
 }
