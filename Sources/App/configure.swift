@@ -51,6 +51,8 @@ fileprivate func setupMigrationConfiguration(_ app: Application) async throws {
     .add(PopulateExercisesMigration(resourcesDirectory: app.directory.resourcesDirectory))
   app.migrations
     .add(PopulateImageUrlsToExercisesMigration())
+  app.migrations
+    .add(CreateUserFavoriteExerciseTableMigration())
 
   try await app.autoMigrate()
 }

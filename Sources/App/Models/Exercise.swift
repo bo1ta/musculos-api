@@ -50,7 +50,10 @@ final class Exercise: Model, Content, @unchecked Sendable {
   
   @Field(key: "image_urls")
   var imageUrls: [String]?
-  
+
+  @Siblings(through: UserFavoriteExercise.self, from: \.$exercise, to: \.$user)
+  var favoritedBy: [User]
+
   init() { }
   
   init(

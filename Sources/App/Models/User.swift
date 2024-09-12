@@ -24,7 +24,10 @@ final class User: Model, Content, @unchecked Sendable {
   
   @Field(key: "password_hash")
   var passwordHash: String
-  
+
+  @Siblings(through: UserFavoriteExercise.self, from: \.$user, to: \.$exercise)
+  var favoriteExercises: [Exercise]
+
   init() { }
   
   init(
