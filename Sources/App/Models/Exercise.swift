@@ -85,6 +85,44 @@ final class Exercise: Model, Content, @unchecked Sendable {
     self.dateUpdated = dateUpdated
     self.imageUrls = imageUrls
   }
+
+  public func asPublic(isFavorite: Bool) -> Public {
+    return Public(
+      id: id,
+      name: name,
+      category: category,
+      level: level,
+      force: force,
+      mechanic: mechanic,
+      equipment: equipment,
+      primaryMuscles: primaryMuscles,
+      secondaryMuscles: secondaryMuscles,
+      instructions: instructions,
+      dateCreated: dateCreated,
+      dateUpdated: dateUpdated,
+      imageUrls: imageUrls,
+      isFavorite: isFavorite
+    )
+  }
 }
 
 extension Exercise: DecodableModel { }
+
+extension Exercise {
+  struct Public: Content, @unchecked Sendable {
+    let id: UUID?
+    let name: String
+    let category: String
+    let level: String
+    let force: String?
+    let mechanic: String?
+    let equipment: String?
+    let primaryMuscles: [String]
+    let secondaryMuscles: [String]
+    let instructions: [String]
+    let dateCreated: Date?
+    let dateUpdated: Date?
+    let imageUrls: [String]?
+    let isFavorite: Bool
+  }
+}

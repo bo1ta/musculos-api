@@ -38,15 +38,9 @@ fileprivate func setupMigrationConfiguration(_ app: Application) async throws {
   app.migrations
     .add(CreateTokenTableMigration())
   app.migrations
-    .add(AddExpiresAtAndCreatedAtToTokenMigration())
-  app.migrations
-    .add(AddPasswordHashToUserMigration())
-  app.migrations
     .add(CreateWorkoutTableMigration())
   app.migrations
     .add(CreateWorkoutExerciseTableMigration())
-  app.migrations
-    .add(AddImageUrlsToUserMigration())
   app.migrations
     .add(PopulateExercisesMigration(resourcesDirectory: app.directory.resourcesDirectory))
   app.migrations

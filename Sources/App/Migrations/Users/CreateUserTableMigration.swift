@@ -18,6 +18,8 @@ struct CreateUserTableMigration: AsyncMigration {
       .id()
       .field("username", .string, .required)
       .field("email", .string, .required)
+      .field("password_hash", .string, .required)
+      .field("image_urls", .array(of: .string))
       .unique(on: "email")
       .unique(on: "username")
       .create()

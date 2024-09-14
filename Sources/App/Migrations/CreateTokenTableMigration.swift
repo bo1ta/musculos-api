@@ -14,6 +14,8 @@ struct CreateTokenTableMigration: AsyncMigration {
       .id()
       .field("token_value", .string, .required)
       .field("user_id", .uuid, .required, .references(User.schema, "id", onDelete: .cascade))
+      .field("created_at", .datetime)
+      .field("expires_at", .datetime)
       .create()
   }
   
