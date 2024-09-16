@@ -25,6 +25,21 @@ final class User: Model, Content, @unchecked Sendable {
   @Field(key: "password_hash")
   var passwordHash: String
 
+  @Field(key: "weight")
+  var weight: Double?
+
+  @Field(key: "height")
+  var height: Double?
+
+  @Field(key: "level")
+  var level: String?
+
+  @Field(key: "primary_goal")
+  var primaryGoal: String?
+
+  @Field(key: "is_onboarded")
+  var isOnboarded: Bool
+
   @Siblings(through: UserFavoriteExercise.self, from: \.$user, to: \.$exercise)
   var favoriteExercises: [Exercise]
 
@@ -34,16 +49,35 @@ final class User: Model, Content, @unchecked Sendable {
     id: UUID? = nil,
     username: String,
     email: String,
-    passwordHash: String
+    passwordHash: String,
+    weight: Double? = nil,
+    height: Double? = nil,
+    level: String? = nil,
+    primaryGoal: String? = nil,
+    isOnboarded: Bool = false
   ) {
     self.id = id
     self.username = username
     self.email = email
     self.passwordHash = passwordHash
+    self.weight = weight
+    self.height = height
+    self.level = level
+    self.primaryGoal = primaryGoal
+    self.isOnboarded = isOnboarded
   }
 
   func asPublic() -> User.Public {
-    return User.Public(username: self.username, email: self.email, id: self.id)
+    return User.Public(
+      username: self.username,
+      email: self.email,
+      id: self.id,
+      weight: self.weight,
+      height: self.height,
+      primaryGoal: self.primaryGoal,
+      level: self.level,
+      isOnboarded: self.isOnboarded
+    )
   }
 }
 
@@ -69,6 +103,11 @@ extension User {
     var username: String
     var email: String
     var id: UUID?
+    var weight: Double?
+    var height: Double?
+    var primaryGoal: String?
+    var level: String?
+    var isOnboarded: Bool
   }
 }
 

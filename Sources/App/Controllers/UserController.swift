@@ -21,10 +21,37 @@ struct UserController: RouteCollection {
       try await login(request)
     }
 
-    let protectedRoute = users.grouped(Token.authenticator())
-    protectedRoute.get("me") { request in
+    let protectedRoute = users.grouped(Token.authenticator()).grouped("me")
+    protectedRoute.get { request in
       try await getMyProfile(request)
     }
+    protectedRoute.post("update-profile") { request in
+      try await updateProfile(request)
+    }
+  }
+
+  func updateProfile(_ req: Request) async throws -> User.Public {
+    let user = try req.auth.require(User.self)
+
+    let updateData = try req.content.decode(UpdateProfileData.self)
+    if let weight = updateData.weight {
+      user.weight = weight
+    }
+    if let height = updateData.height {
+      user.height = height
+    }
+    if let primaryGoal = updateData.primaryGoal {
+      user.primaryGoal = primaryGoal
+    }
+    if let level = updateData.level {
+      user.level = level
+    }
+    if let isOnboarded = updateData.isOnboarded {
+      user.isOnboarded = isOnboarded
+    }
+
+    try await user.update(on: req.db)
+    return user.asPublic()
   }
 
   func register(_ req: Request) async throws -> SessionResponse {
@@ -72,5 +99,13 @@ extension UserController {
   struct SessionResponse: Content {
     let token: Token.Public
     let user: User.Public
+  }
+
+  struct UpdateProfileData: Content {
+    let weight: Double?
+    let height: Double?
+    let primaryGoal: String?
+    let level: String?
+    let isOnboarded: Bool?
   }
 }
