@@ -17,8 +17,9 @@ struct ExerciseController: RouteCollection {
       )
 
     exerciseRoute.get(use: { try await self.index(req: $0) })
-    exerciseRoute.post(use: { try await self.create(req: $0) })
     exerciseRoute.get(":exerciseID", use: { try await self.getByID(req: $0) })
+    exerciseRoute.get("getByGoals", use: { try await self.getExercisesByGoal(req: $0) })
+    exerciseRoute.post(use: { try await self.create(req: $0) })
 
     let favoriteRoute = exerciseRoute.grouped("favorites")
     favoriteRoute.post(use: { try await self.favoriteExercise(req: $0) })
@@ -103,6 +104,21 @@ struct ExerciseController: RouteCollection {
     
     try await exercise.delete(on: req.db)
     return .noContent
+  }
+
+  public func getExercisesByGoal(req: Request) async throws -> [Exercise.Public] {
+    let goal = try req.query.get(WorkoutGoal.self, at: "goal")
+    let categories = ExerciseConstants.goalToExerciseCategories[goal] ?? []
+    guard !categories.isEmpty else {
+      return []
+    }
+
+    let exercises = try await Exercise.query(on: req.db)
+      .filter(\.$category ~~ categories)
+      .limit(25)
+      .all()
+
+    return exercises.map { $0.asPublic(isFavorite: false) }
   }
 }
 
