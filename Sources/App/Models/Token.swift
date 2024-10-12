@@ -38,8 +38,11 @@ final class Token: Model, Content, @unchecked Sendable {
   static func create(for user: User) throws -> Token {
     let userID = try user.requireID()
     let tokenValue = [UInt8].random(count: 32).base64
-    let expiryDate = Calendar(identifier: .gregorian)
+    var expiryDate = Calendar(identifier: .gregorian)
       .date(byAdding: .day, value: 1, to: Date())
+
+    // override expiry date for development
+    expiryDate = .distantFuture
 
     return Token(userID: userID, tokenValue: tokenValue, expiresAt: expiryDate)
   }

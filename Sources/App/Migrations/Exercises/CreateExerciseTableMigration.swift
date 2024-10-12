@@ -25,6 +25,7 @@ struct CreateExerciseTableMigration: AsyncMigration {
       .field("equipment", .string)
       .field("mechanic", .string)
       .field("level", .string)
+      .field("xp", .int, .sql(.default(0)))
       .create()
   }
   

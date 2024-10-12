@@ -40,8 +40,8 @@ struct UserController: RouteCollection {
     if let height = updateData.height {
       user.height = height
     }
-    if let primaryGoal = updateData.primaryGoal {
-      user.primaryGoal = primaryGoal
+    if let primaryGoalID = updateData.primaryGoalID {
+      user.primaryGoalID = primaryGoalID
     }
     if let level = updateData.level {
       user.level = level
@@ -104,7 +104,7 @@ extension UserController {
   struct UpdateProfileData: Content {
     let weight: Double?
     let height: Double?
-    let primaryGoal: String?
+    let primaryGoalID: Int?
     let level: String?
     let isOnboarded: Bool?
   }

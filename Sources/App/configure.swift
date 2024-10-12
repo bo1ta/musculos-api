@@ -47,7 +47,8 @@ fileprivate func setupMigrationConfiguration(_ app: Application) async throws {
     .add(PopulateImageUrlsToExercisesMigration())
   app.migrations
     .add(CreateUserFavoriteExerciseTableMigration())
-  app.migrations.add(AddOnboardingFieldsToUserMigration())
+  app.migrations
+    .add(CreateExerciseSessionTableMigration())
 
   try await app.autoMigrate()
 }

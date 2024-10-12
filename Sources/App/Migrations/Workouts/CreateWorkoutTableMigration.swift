@@ -8,9 +8,9 @@
 import Vapor
 import Fluent
 
-struct CreateWorkoutTableMigration: Migration {
-  func prepare(on database: any Database) -> EventLoopFuture<Void> {
-    return database.schema(Workout.schema)
+struct CreateWorkoutTableMigration: AsyncMigration {
+  func prepare(on database: any Database) async throws {
+    return try await database.schema(Workout.schema)
       .id()
       .field("name", .string, .required)
       .field("target_muscles", .array(of: .string))
@@ -18,8 +18,8 @@ struct CreateWorkoutTableMigration: Migration {
       .create()
   }
   
-  func revert(on database: any Database) -> EventLoopFuture<Void> {
-    return database.schema("workouts")
+  func revert(on database: any Database) async throws {
+    return try await database.schema(Workout.schema)
       .delete()
   }
 }

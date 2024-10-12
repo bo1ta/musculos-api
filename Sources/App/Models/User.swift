@@ -34,14 +34,17 @@ final class User: Model, Content, @unchecked Sendable {
   @Field(key: "level")
   var level: String?
 
-  @Field(key: "primary_goal")
-  var primaryGoal: String?
+  @Field(key: "primary_goal_id")
+  var primaryGoalID: Int?
 
   @Field(key: "is_onboarded")
   var isOnboarded: Bool
 
   @Siblings(through: UserFavoriteExercise.self, from: \.$user, to: \.$exercise)
   var favoriteExercises: [Exercise]
+
+  @Field(key: "xp")
+  var xp: Int
 
   init() { }
   
@@ -53,8 +56,9 @@ final class User: Model, Content, @unchecked Sendable {
     weight: Double? = nil,
     height: Double? = nil,
     level: String? = nil,
-    primaryGoal: String? = nil,
-    isOnboarded: Bool = false
+    primaryGoalID: Int? = nil,
+    isOnboarded: Bool = false,
+    xp: Int = 0
   ) {
     self.id = id
     self.username = username
@@ -63,8 +67,9 @@ final class User: Model, Content, @unchecked Sendable {
     self.weight = weight
     self.height = height
     self.level = level
-    self.primaryGoal = primaryGoal
+    self.primaryGoalID = primaryGoalID
     self.isOnboarded = isOnboarded
+    self.xp = xp
   }
 
   func asPublic() -> User.Public {
@@ -74,9 +79,10 @@ final class User: Model, Content, @unchecked Sendable {
       id: self.id,
       weight: self.weight,
       height: self.height,
-      primaryGoal: self.primaryGoal,
+      primaryGoalID: self.primaryGoalID,
       level: self.level,
-      isOnboarded: self.isOnboarded
+      isOnboarded: self.isOnboarded,
+      xp: self.xp
     )
   }
 }
@@ -105,9 +111,10 @@ extension User {
     var id: UUID?
     var weight: Double?
     var height: Double?
-    var primaryGoal: String?
+    var primaryGoalID: Int?
     var level: String?
     var isOnboarded: Bool
+    var xp: Int
   }
 }
 
