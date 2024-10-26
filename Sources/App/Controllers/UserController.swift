@@ -40,14 +40,14 @@ struct UserController: RouteCollection {
     if let height = updateData.height {
       user.height = height
     }
-    if let primaryGoalID = updateData.primaryGoalID {
-      user.primaryGoalID = primaryGoalID
-    }
     if let level = updateData.level {
       user.level = level
     }
     if let isOnboarded = updateData.isOnboarded {
       user.isOnboarded = isOnboarded
+    }
+    if let primaryGoalID = updateData.primaryGoalID {
+      user.primaryGoalID = primaryGoalID
     }
 
     try await user.update(on: req.db)
@@ -104,8 +104,8 @@ extension UserController {
   struct UpdateProfileData: Content {
     let weight: Double?
     let height: Double?
-    let primaryGoalID: Int?
     let level: String?
     let isOnboarded: Bool?
+    let primaryGoalID: UUID?
   }
 }

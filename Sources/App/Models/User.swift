@@ -35,7 +35,7 @@ final class User: Model, Content, @unchecked Sendable {
   var level: String?
 
   @Field(key: "primary_goal_id")
-  var primaryGoalID: Int?
+  var primaryGoalID: UUID?
 
   @Field(key: "is_onboarded")
   var isOnboarded: Bool
@@ -45,6 +45,9 @@ final class User: Model, Content, @unchecked Sendable {
 
   @Field(key: "xp")
   var xp: Int
+
+  @Children(for: \.$user)
+  var goals: [Goal]
 
   init() { }
   
@@ -56,7 +59,7 @@ final class User: Model, Content, @unchecked Sendable {
     weight: Double? = nil,
     height: Double? = nil,
     level: String? = nil,
-    primaryGoalID: Int? = nil,
+    primaryGoalID: UUID? = nil,
     isOnboarded: Bool = false,
     xp: Int = 0
   ) {
@@ -79,10 +82,10 @@ final class User: Model, Content, @unchecked Sendable {
       id: self.id,
       weight: self.weight,
       height: self.height,
-      primaryGoalID: self.primaryGoalID,
       level: self.level,
       isOnboarded: self.isOnboarded,
-      xp: self.xp
+      xp: self.xp,
+      primaryGoalID: self.primaryGoalID
     )
   }
 }
@@ -111,10 +114,10 @@ extension User {
     var id: UUID?
     var weight: Double?
     var height: Double?
-    var primaryGoalID: Int?
     var level: String?
     var isOnboarded: Bool
     var xp: Int
+    var primaryGoalID: UUID?
   }
 }
 

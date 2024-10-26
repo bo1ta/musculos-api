@@ -11,7 +11,7 @@ import Fluent
 final class ExerciseSession: Model, Content, @unchecked Sendable {
   static let schema = "exerciseSessions"
 
-  @ID(key: .id)
+  @ID(custom: "session_id")
   var id: UUID?
 
   @Field(key: "date_added")
@@ -34,5 +34,17 @@ final class ExerciseSession: Model, Content, @unchecked Sendable {
     self.duration = duration
     self.$user.id = userID
     self.$exercise.id = exerciseID
+  }
+
+  func asPublic() throws -> Public {
+    return try Public(sessionId: self.requireID(), dateAdded: self.dateAdded, user: self.user.asPublic(), exercise: exercise.asPublic(isFavorite: false), duration: self.duration)
+  }
+
+  struct Public: Content {
+    let sessionId: UUID
+    let dateAdded: Date
+    let user: User.Public
+    let exercise: Exercise.Public
+    let duration: Double
   }
 }

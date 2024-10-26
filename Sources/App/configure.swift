@@ -49,6 +49,14 @@ fileprivate func setupMigrationConfiguration(_ app: Application) async throws {
     .add(CreateUserFavoriteExerciseTableMigration())
   app.migrations
     .add(CreateExerciseSessionTableMigration())
+  app.migrations
+    .add(CreateGoalTableMigration())
+  app.migrations
+    .add(CreateGoalTemplateMigration())
+  app.migrations
+    .add(SeedGoalTemplatesMigration())
+  app.migrations
+    .add(CreateProgressEntryTableMigration())
 
   try await app.autoMigrate()
 }

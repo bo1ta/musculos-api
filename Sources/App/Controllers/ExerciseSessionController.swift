@@ -19,18 +19,22 @@ struct ExerciseSessionController: RouteCollection {
     route.post(use: { try await create(req: $0) })
   }
 
-  func getAll(req: Request) async throws -> [ExerciseSession] {
+  func getAll(req: Request) async throws -> [ExerciseSession.Public] {
     let currentUser = try req.auth.require(User.self)
     return try await ExerciseSession.query(on: req.db)
       .filter(\.$user.$id == currentUser.id!)
+      .with(\.$user)
+      .with(\.$exercise)
       .all()
+      .map { try $0.asPublic() }
   }
 
-  func create(req: Request) async throws -> ExerciseSession {
+  func create(req: Request) async throws -> ExerciseSession.Public {
     let currentUser = try req.auth.require(User.self)
     let content = try req.content.decode(CreateContent.self)
 
     let session = ExerciseSession()
+    session.id = content.sessionID
     session.dateAdded = content.dateAdded
     session.duration = content.duration
 
@@ -38,12 +42,17 @@ struct ExerciseSessionController: RouteCollection {
     session.$exercise.id  = content.exerciseID
 
     try await session.save(on: req.db)
-    return session
+
+    try await session.$user.load(on: req.db)
+    try await session.$exercise.load(on: req.db)
+
+    return try session.asPublic()
   }
 
   private struct CreateContent: Content {
-      var dateAdded: Date
-      var duration: Double
-      var exerciseID: UUID
+    var dateAdded: Date
+    var duration: Double
+    var exerciseID: UUID
+    var sessionID: UUID
   }
 }
