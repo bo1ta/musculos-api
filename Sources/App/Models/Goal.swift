@@ -35,9 +35,15 @@ final class Goal: Model, Content, @unchecked Sendable {
   @Field(key: "is_completed")
   var isCompleted: Bool
 
+  @Field(key: "target_value")
+  var targetValue: Int?
+
+  @Field(key: "category")
+  var category: String?
+
   init() {}
 
-  init(id: UUID = UUID(), name: String, userID: User.IDValue, frequency: String, dateAdded: Date = Date(), endDate: Date? = nil, isCompleted: Bool = false) {
+  init(id: UUID = UUID(), name: String, userID: User.IDValue, frequency: String, dateAdded: Date = Date(), endDate: Date? = nil, isCompleted: Bool = false, category: String? = nil, targetValue: Int? = nil) {
     self.id = id
     self.name = name
     self.$user.id = userID
@@ -45,5 +51,24 @@ final class Goal: Model, Content, @unchecked Sendable {
     self.dateAdded = dateAdded
     self.endDate = endDate
     self.isCompleted = isCompleted
+    self.category = category
+    self.targetValue = targetValue
+  }
+
+  func asPublic() throws -> Goal.Public {
+    return Public(id: try self.requireID(), name: self.name, user: user.asPublic(), frequency: self.frequency, progressEntries: self.progressEntries, dateAdded: self.dateAdded, endDate: self.endDate, isCompleted: self.isCompleted, targetValue: self.targetValue, category: self.category)
+  }
+
+  struct Public: Content {
+    let id: UUID?
+    let name: String
+    let user: User.Public
+    let frequency: String
+    let progressEntries: [ProgressEntry]?
+    let dateAdded: Date
+    let endDate: Date?
+    let isCompleted: Bool
+    let targetValue: Int?
+    let category: String?
   }
 }

@@ -20,11 +20,14 @@ struct GoalController: RouteCollection {
     route.post("update-progress", use: { try await self.addProgressEntry(req: $0) })
   }
 
-  func index(req: Request) async throws -> [Goal] {
+  func index(req: Request) async throws -> [Goal.Public] {
     let currentUser = try req.auth.require(User.self)
     return try await Goal.query(on: req.db)
       .filter(\.$user.$id  == currentUser.id!)
+      .with(\.$user)
+      .with(\.$progressEntries)
       .all()
+      .map { try $0.asPublic() }
   }
 
   func getByID(req: Request) async throws -> Goal {
@@ -50,7 +53,9 @@ struct GoalController: RouteCollection {
       frequency: content.frequency,
       dateAdded: content.dateAdded,
       endDate: content.endDate,
-      isCompleted: content.isCompleted
+      isCompleted: content.isCompleted,
+      category: content.category,
+      targetValue: content.targetValue
     )
     try await goal.save(on: req.db)
     return goal
@@ -75,6 +80,8 @@ struct GoalController: RouteCollection {
     var dateAdded: Date
     var endDate: Date?
     var isCompleted: Bool
+    var category: String?
+    var targetValue: Int?
   }
 
   private struct AddProgressEntryContent: Content {
