@@ -19,7 +19,7 @@ final class CreateGoalTableMigration: AsyncMigration {
       .field("category", .string)
       .field("end_date", .date)
       .field("is_completed", .bool, .required, .sql(.default(false)))
-      .field("target_value", .int8)
+      .field("target_value", .int, .required)
       .create()
   }
 

@@ -5,6 +5,7 @@
 //  Created by Solomon Alexandru on 06.05.2024.
 //
 
+import Foundation
 import Fluent
 import Vapor
 
@@ -19,6 +20,7 @@ struct ExerciseController: RouteCollection {
     exerciseRoute.get(use: { try await self.index(req: $0) })
     exerciseRoute.get(":exerciseID", use: { try await self.getByID(req: $0) })
     exerciseRoute.get("getByGoals", use: { try await self.getExercisesByGoal(req: $0) })
+    exerciseRoute.get("filtered", use: { try await self.getExercisesByMuscleGroup(req: $0) })
     exerciseRoute.post(use: { try await self.create(req: $0) })
 
     let favoriteRoute = exerciseRoute.grouped("favorites")
@@ -49,6 +51,39 @@ struct ExerciseController: RouteCollection {
 
     let isFavorite = try await currentUser.$favoriteExercises.isAttached(to: exercise, on: req.db)
     return exercise.asPublic(isFavorite: isFavorite)
+  }
+
+  func getExercisesByMuscleGroup(req: Request) async throws -> [Exercise.Public] {
+      let currentUser = try req.auth.require(User.self)
+
+      // Extract the muscle group query parameter if present
+      guard let muscleGroup = req.query["muscleGroup"] as String? else {
+          throw Abort(.badRequest, reason: "Muscle group query parameter is required.")
+      }
+
+      // Step 1: Fetch only `id`, `primaryMuscles`, and `secondaryMuscles` for filtering
+      let exercises = try await Exercise.query(on: req.db)
+      .field(\.$id)
+      .field(\.$primaryMuscles)
+      .all()
+
+      // Step 2: Filter exercises based on `muscleGroup`
+      let filteredIDs: [UUID] = exercises
+          .filter { exercise in
+              exercise.primaryMuscles.contains(muscleGroup)
+          }
+          .compactMap { $0.id }
+
+      // Step 3: Retrieve full details of exercises that matched the muscle group
+      let matchedExercises = try await Exercise.query(on: req.db)
+          .filter(\.$id ~~ filteredIDs)
+          .all()
+
+      // Map to public representation with favorite status
+      return try await matchedExercises.asyncMap { exercise in
+          let isFavorite = try await currentUser.$favoriteExercises.isAttached(to: exercise, on: req.db)
+          return exercise.asPublic(isFavorite: isFavorite)
+      }
   }
 
   func create(req: Request) async throws -> Exercise {
