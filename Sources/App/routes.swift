@@ -7,4 +7,6 @@ func routes(_ app: Application) throws {
   try app.register(collection: ExerciseSessionController())
   try app.register(collection: GoalTemplateController())
   try app.register(collection: GoalController())
+  try app.register(collection: ExerciseRatingController())
+  try app.register(collection: ImageController())
 }

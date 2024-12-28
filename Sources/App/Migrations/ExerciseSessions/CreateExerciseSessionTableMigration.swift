@@ -20,7 +20,6 @@ struct CreateExerciseSessionTableMigration: AsyncMigration {
   }
 
   func revert(on database: any Database) async throws {
-    return try await database.schema(ExerciseSession.schema)
-      .delete()
+    return try await database.schema(ExerciseSession.schema).delete()
   }
 }

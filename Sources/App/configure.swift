@@ -22,6 +22,8 @@ public func configure(_ app: Application) async throws {
     tls: .prefer(try .init(configuration: .clientDefault)))
   ), as: .psql)
 
+  app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+
   await app.jwt.keys.add(hmac: .init(stringLiteral: "secret"), digestAlgorithm: .sha256)
 
   try await setupMigrationConfiguration(app)
@@ -57,6 +59,12 @@ fileprivate func setupMigrationConfiguration(_ app: Application) async throws {
     .add(SeedGoalTemplatesMigration())
   app.migrations
     .add(CreateProgressEntryTableMigration())
+  app.migrations
+    .add(CreateExerciseRatingTableMigration())
+  app.migrations
+    .add(CreateUserExperienceMigration())
+  app.migrations
+    .add(CreateUserExperienceEntryMigration())
 
   try await app.autoMigrate()
 }

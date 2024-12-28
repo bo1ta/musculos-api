@@ -20,22 +20,24 @@ struct ExerciseController: RouteCollection {
     exerciseRoute.get(use: { try await self.index(req: $0) })
     exerciseRoute.get(":exerciseID", use: { try await self.getByID(req: $0) })
     exerciseRoute.get("getByGoals", use: { try await self.getExercisesByGoal(req: $0) })
-    exerciseRoute.get("filtered", use: { try await self.getExercisesByMuscleGroup(req: $0) })
+    exerciseRoute.get("filtered", use: { try await self.getFilteredExercises(req: $0) })
     exerciseRoute.post(use: { try await self.create(req: $0) })
 
     let favoriteRoute = exerciseRoute.grouped("favorites")
     favoriteRoute.post(use: { try await self.favoriteExercise(req: $0) })
     favoriteRoute.get(use: { try await self.getFavorites(req: $0) })
   }
-  
-  func index(req: Request) async throws -> [Exercise.Public] {
+
+  func index(req: Request) async throws -> Response {
     let currentUser = try req.auth.require(User.self)
     let exercises = try await Exercise.query(on: req.db).limit(20).all()
 
-    return try await exercises.asyncMap { exercise in
+    let publicExercises = try await exercises.asyncMap { exercise in
       let isFavorite = try await currentUser.$favoriteExercises.isAttached(to: exercise, on: req.db)
       return exercise.asPublic(isFavorite: isFavorite)
     }
+
+    return try Response.withCacheControl(maxAge: 1800, data: publicExercises)
   }
 
   func getByID(req: Request) async throws -> Exercise.Public {
@@ -53,42 +55,40 @@ struct ExerciseController: RouteCollection {
     return exercise.asPublic(isFavorite: isFavorite)
   }
 
-  func getExercisesByMuscleGroup(req: Request) async throws -> [Exercise.Public] {
-      let currentUser = try req.auth.require(User.self)
+  func getFilteredExercises(req: Request) async throws -> Response {
+    let muscle = req.query["muscle"] as String?
+    let muscleGroup = req.query["muscleGroup"] as String?
+    let name = req.query["name"] as String?
 
-      // Extract the muscle group query parameter if present
-      guard let muscleGroup = req.query["muscleGroup"] as String? else {
-          throw Abort(.badRequest, reason: "Muscle group query parameter is required.")
+    guard muscle != nil || muscleGroup != nil || name != nil else {
+      throw Abort(.badRequest, reason: "At least one filter parameter (muscle, muscleGroup, or name) is required.")
+    }
+
+    var exercises = try await Exercise.query(on: req.db).all()
+
+    if let muscle = muscle {
+      exercises = exercises.filter { $0.primaryMuscles.contains(muscle) }
+    }
+
+    if let muscleGroup = muscleGroup, let muscleGroupType = MuscleGroup(rawValue: muscleGroup.lowercased()) {
+      let groupMuscles = muscleGroupType.muscles.map(\.rawValue)
+
+      exercises = exercises.filter { exercise in
+        exercise.primaryMuscles.contains { groupMuscles.contains($0) }
       }
+    }
 
-      // Step 1: Fetch only `id`, `primaryMuscles`, and `secondaryMuscles` for filtering
-      let exercises = try await Exercise.query(on: req.db)
-      .field(\.$id)
-      .field(\.$primaryMuscles)
-      .all()
+    if let name = name {
+      exercises = exercises.filter { $0.name.localizedCaseInsensitiveContains(name) }
+    }
 
-      // Step 2: Filter exercises based on `muscleGroup`
-      let filteredIDs: [UUID] = exercises
-          .filter { exercise in
-              exercise.primaryMuscles.contains(muscleGroup)
-          }
-          .compactMap { $0.id }
-
-      // Step 3: Retrieve full details of exercises that matched the muscle group
-      let matchedExercises = try await Exercise.query(on: req.db)
-          .filter(\.$id ~~ filteredIDs)
-          .all()
-
-      // Map to public representation with favorite status
-      return try await matchedExercises.asyncMap { exercise in
-          let isFavorite = try await currentUser.$favoriteExercises.isAttached(to: exercise, on: req.db)
-          return exercise.asPublic(isFavorite: isFavorite)
-      }
+    let publicExercises = exercises.map { $0.asPublic() }
+    return try Response.withCacheControl(maxAge: 1800, data: publicExercises)
   }
 
   func create(req: Request) async throws -> Exercise {
     let exercise = try req.content.decode(Exercise.self)
-    
+
     try await exercise.save(on: req.db)
     return exercise
   }
@@ -136,16 +136,16 @@ struct ExerciseController: RouteCollection {
     guard let exercise = try await Exercise.find(req.parameters.get("exerciseID"), on: req.db) else {
       throw Abort(.notFound)
     }
-    
+
     try await exercise.delete(on: req.db)
     return .noContent
   }
 
-  public func getExercisesByGoal(req: Request) async throws -> [Exercise.Public] {
+  public func getExercisesByGoal(req: Request) async throws -> Response {
     let goal = try req.query.get(WorkoutGoal.self, at: "goal")
     let categories = ExerciseConstants.goalToExerciseCategories[goal] ?? []
     guard !categories.isEmpty else {
-      return []
+      throw Abort(.notFound)
     }
 
     let exercises = try await Exercise.query(on: req.db)
@@ -153,7 +153,8 @@ struct ExerciseController: RouteCollection {
       .limit(25)
       .all()
 
-    return exercises.map { $0.asPublic(isFavorite: false) }
+    let publicExercises = exercises.map { $0.asPublic(isFavorite: false) }
+    return try Response.withCacheControl(maxAge: 1800, data: publicExercises)
   }
 }
 

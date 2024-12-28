@@ -56,7 +56,18 @@ final class Goal: Model, Content, @unchecked Sendable {
   }
 
   func asPublic() throws -> Goal.Public {
-    return Public(id: try self.requireID(), name: self.name, user: user.asPublic(), frequency: self.frequency, progressEntries: self.progressEntries, dateAdded: self.dateAdded, endDate: self.endDate, isCompleted: self.isCompleted, targetValue: self.targetValue, category: self.category)
+    return Public(
+      id: try self.requireID(),
+      name: self.name,
+      user: user.asPublic(),
+      frequency: self.frequency,
+      progressEntries: self.progressEntries,
+      dateAdded: self.dateAdded,
+      endDate: self.endDate,
+      isCompleted: self.isCompleted,
+      targetValue: self.targetValue,
+      category: self.category
+    )
   }
 
   struct Public: Content {

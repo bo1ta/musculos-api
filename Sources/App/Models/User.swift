@@ -40,14 +40,20 @@ final class User: Model, Content, @unchecked Sendable {
   @Field(key: "is_onboarded")
   var isOnboarded: Bool
 
-  @Siblings(through: UserFavoriteExercise.self, from: \.$user, to: \.$exercise)
-  var favoriteExercises: [Exercise]
-
   @Field(key: "xp")
   var xp: Int
 
+  @Siblings(through: UserFavoriteExercise.self, from: \.$user, to: \.$exercise)
+  var favoriteExercises: [Exercise]
+
   @Children(for: \.$user)
   var goals: [Goal]
+
+  @Children(for: \.$user)
+  var ratings: [ExerciseRating]
+
+  @OptionalChild(for: \.$user)
+  var userExperience: UserExperience?
 
   init() { }
   
@@ -85,7 +91,8 @@ final class User: Model, Content, @unchecked Sendable {
       level: self.level,
       isOnboarded: self.isOnboarded,
       xp: self.xp,
-      primaryGoalID: self.primaryGoalID
+      primaryGoalID: self.primaryGoalID,
+      totalExperience: self.$userExperience.value??.totalExperience ?? 0
     )
   }
 }
@@ -118,6 +125,7 @@ extension User {
     var isOnboarded: Bool
     var xp: Int
     var primaryGoalID: UUID?
+    var totalExperience: Int
   }
 }
 

@@ -29,7 +29,7 @@ struct ExerciseSessionController: RouteCollection {
       .map { try $0.asPublic() }
   }
 
-  func create(req: Request) async throws -> ExerciseSession.Public {
+  func create(req: Request) async throws -> UserExperienceEntry {
     let currentUser = try req.auth.require(User.self)
     let content = try req.content.decode(CreateContent.self)
 
@@ -46,7 +46,7 @@ struct ExerciseSessionController: RouteCollection {
     try await session.$user.load(on: req.db)
     try await session.$exercise.load(on: req.db)
 
-    return try session.asPublic()
+    return try await ExperienceService.updateUserExperience(for: session, req: req)
   }
 
   private struct CreateContent: Content {

@@ -54,6 +54,9 @@ final class Exercise: Model, Content, @unchecked Sendable {
   @Siblings(through: UserFavoriteExercise.self, from: \.$exercise, to: \.$user)
   var favoritedBy: [User]
 
+  @Children(for: \.$exercise)
+  var ratings: [ExerciseRating]
+
   init() { }
   
   init(
@@ -86,7 +89,7 @@ final class Exercise: Model, Content, @unchecked Sendable {
     self.imageUrls = imageUrls
   }
 
-  public func asPublic(isFavorite: Bool) -> Public {
+  public func asPublic(isFavorite: Bool = false) -> Public {
     return Public(
       id: id,
       name: name,

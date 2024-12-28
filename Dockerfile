@@ -41,9 +41,10 @@ RUN cp "/usr/libexec/swift/linux/swift-backtrace-static" ./
 # Copy resources bundled by SPM to staging area
 RUN find -L "$(swift build --package-path /build -c release --show-bin-path)/" -regex '.*\.resources$' -exec cp -Ra {} ./ \;
 
-# Copy any resources from the public directory and views directory if the directories exist
-# Ensure that by default, neither the directory nor any of its contents are writable.
-RUN [ -d /build/Public ] && { mv /build/Public ./Public && chmod -R a-w ./Public; } || true
+# For Public directory: allow write permissions but only for the vapor user/group
+RUN [ -d /build/Public ] && { mv /build/Public ./Public && chmod -R u+w ./Public; } || true
+
+# Resources can stay read-only as before
 RUN [ -d /build/Resources ] && { mv /build/Resources ./Resources && chmod -R a-w ./Resources; } || true
 
 # ================================

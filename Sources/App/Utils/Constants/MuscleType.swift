@@ -35,3 +35,22 @@ public enum MuscleType: String, CaseIterable, Identifiable, Sendable {
   }
 }
 
+public enum MuscleGroup: String {
+  case back
+  case legs
+  case arms
+  case shoulders
+  case chest
+  case core
+
+  var muscles: [MuscleType] {
+    switch self {
+    case .back: [.middleBack, .lowerBack, .lats, .traps]
+    case .legs: [.hamstrings, .adductors, .quadriceps, .calves, .abductors, .glutes]
+    case .arms: [.biceps, .triceps, .forearms]
+    case .shoulders: [.shoulders, .neck]
+    case .chest: [.chest]
+    case .core: [.abdominals]
+    }
+  }
+}
