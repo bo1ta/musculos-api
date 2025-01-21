@@ -5,8 +5,8 @@
 //  Created by Solomon Alexandru on 25.10.2024.
 //
 
-import Vapor
 import Fluent
+import Vapor
 
 final class GoalTemplate: Model, Content, @unchecked Sendable {
   static let schema = "goalTemplates"
@@ -23,7 +23,7 @@ final class GoalTemplate: Model, Content, @unchecked Sendable {
   @Field(key: "icon_name")
   var iconName: String
 
-  init() {}
+  init() { }
 
   init(id: UUID = UUID(), title: String, description: String, iconName: String) {
     self.id = id

@@ -6,8 +6,8 @@
 //
 
 import Fluent
-import Vapor
 import SQLKit
+import Vapor
 
 struct CreateExerciseTableMigration: AsyncMigration {
   func prepare(on database: any Database) async throws {
@@ -28,7 +28,7 @@ struct CreateExerciseTableMigration: AsyncMigration {
       .field("xp", .int, .sql(.default(0)))
       .create()
   }
-  
+
   func revert(on database: any Database) async throws {
     try await database.schema("exercises").delete()
   }

@@ -1,26 +1,29 @@
-import NIOSSL
+import APNS
+import APNSCore
 import Fluent
 import FluentPostgresDriver
-import Leaf
-import Vapor
 import JWT
+import Leaf
+import NIOSSL
+import Vapor
+import VaporAPNS
 
 public func configure(_ app: Application) async throws {
   // uncomment to serve files from /Public folder
   // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
-#if DEBUG && os(macOS)
+  #if DEBUG && os(macOS)
   Bundle(path: "/Applications/InjectionIII.app/Contents/Resources/macOSInjection.bundle")?.load()
-#endif
+  #endif
 
-  app.databases.use(DatabaseConfigurationFactory.postgres(configuration: .init(
-    hostname: Environment.get("DATABASE_HOST") ?? "postgres",
-    port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? SQLPostgresConfiguration.ianaPortNumber,
-    username: Environment.get("DATABASE_USERNAME") ?? "postgres",
-    password: Environment.get("DATABASE_PASSWORD") ?? "password",
-    database: Environment.get("DATABASE_NAME") ?? "exercises",
-    tls: .prefer(try .init(configuration: .clientDefault)))
-  ), as: .psql)
+  app.databases.use(DatabaseConfigurationFactory.postgres(
+    configuration: .init(
+      hostname: Environment.get("DATABASE_HOST") ?? "postgres",
+      port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? SQLPostgresConfiguration.ianaPortNumber,
+      username: Environment.get("DATABASE_USERNAME") ?? "postgres",
+      password: Environment.get("DATABASE_PASSWORD") ?? "password",
+      database: Environment.get("DATABASE_NAME") ?? "exercises",
+      tls: .prefer(try .init(configuration: .clientDefault)))), as: .psql)
 
   app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
@@ -32,17 +35,20 @@ public func configure(_ app: Application) async throws {
   try routes(app)
 }
 
-fileprivate func setupMigrationConfiguration(_ app: Application) async throws {
-  app.migrations
-    .add(CreateExerciseTableMigration())
+private func setupMigrationConfiguration(_ app: Application) async throws {
+  // MARK: User migrations
+
   app.migrations
     .add(CreateUserTableMigration())
   app.migrations
     .add(CreateTokenTableMigration())
   app.migrations
-    .add(CreateWorkoutTableMigration())
+    .add(CreateUserExperienceMigration())
+
+  // MARK: Exercise migrations
+
   app.migrations
-    .add(CreateWorkoutExerciseTableMigration())
+    .add(CreateExerciseTableMigration())
   app.migrations
     .add(PopulateExercisesMigration(resourcesDirectory: app.directory.resourcesDirectory))
   app.migrations
@@ -52,6 +58,13 @@ fileprivate func setupMigrationConfiguration(_ app: Application) async throws {
   app.migrations
     .add(CreateExerciseSessionTableMigration())
   app.migrations
+    .add(CreateExerciseRatingTableMigration())
+  app.migrations
+    .add(CreateUserExperienceEntryMigration())
+
+  // MARK: Goal migrations
+
+  app.migrations
     .add(CreateGoalTableMigration())
   app.migrations
     .add(CreateGoalTemplateMigration())
@@ -59,12 +72,15 @@ fileprivate func setupMigrationConfiguration(_ app: Application) async throws {
     .add(SeedGoalTemplatesMigration())
   app.migrations
     .add(CreateProgressEntryTableMigration())
+
+  // MARK: Workout migrations
+
   app.migrations
-    .add(CreateExerciseRatingTableMigration())
+    .add(CreateWorkoutChallengeMigration())
   app.migrations
-    .add(CreateUserExperienceMigration())
+    .add(CreateDailyWorkoutMigration())
   app.migrations
-    .add(CreateUserExperienceEntryMigration())
+    .add(CreateWorkoutExerciseMigration())
 
   try await app.autoMigrate()
 }

@@ -5,8 +5,8 @@
 //  Created by Solomon Alexandru on 25.10.2024.
 //
 
-import Vapor
 import Fluent
+import Vapor
 
 struct GoalController: RouteCollection {
   func boot(routes: any RoutesBuilder) throws {
@@ -23,7 +23,7 @@ struct GoalController: RouteCollection {
   func index(req: Request) async throws -> [Goal.Public] {
     let currentUser = try req.auth.require(User.self)
     return try await Goal.query(on: req.db)
-      .filter(\.$user.$id  == currentUser.id!)
+      .filter(\.$user.$id == currentUser.id!)
       .with(\.$user)
       .with(\.$progressEntries)
       .all()
@@ -46,7 +46,7 @@ struct GoalController: RouteCollection {
   func create(req: Request) async throws -> Goal {
     let currentUser = try req.auth.require(User.self)
     let content = try req.content.decode(CreateContent.self)
-    let goal =  Goal(
+    let goal = Goal(
       id: content.goalID,
       name: content.name,
       userID: try currentUser.requireID(),
@@ -55,8 +55,7 @@ struct GoalController: RouteCollection {
       endDate: content.endDate,
       isCompleted: content.isCompleted,
       category: content.category,
-      targetValue: content.targetValue
-    )
+      targetValue: content.targetValue)
     try await goal.save(on: req.db)
     return goal
   }

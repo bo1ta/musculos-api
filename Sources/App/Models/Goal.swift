@@ -5,8 +5,8 @@
 //  Created by Solomon Alexandru on 25.10.2024.
 //
 
-import Vapor
 import Fluent
+import Vapor
 
 final class Goal: Model, Content, @unchecked Sendable {
   static let schema = "goals"
@@ -41,9 +41,19 @@ final class Goal: Model, Content, @unchecked Sendable {
   @Field(key: "category")
   var category: String?
 
-  init() {}
+  init() { }
 
-  init(id: UUID = UUID(), name: String, userID: User.IDValue, frequency: String, dateAdded: Date = Date(), endDate: Date? = nil, isCompleted: Bool = false, category: String? = nil, targetValue: Int? = nil) {
+  init(
+    id: UUID = UUID(),
+    name: String,
+    userID: User.IDValue,
+    frequency: String,
+    dateAdded: Date = Date(),
+    endDate: Date? = nil,
+    isCompleted: Bool = false,
+    category: String? = nil,
+    targetValue: Int? = nil)
+  {
     self.id = id
     self.name = name
     self.$user.id = userID
@@ -56,7 +66,7 @@ final class Goal: Model, Content, @unchecked Sendable {
   }
 
   func asPublic() throws -> Goal.Public {
-    return Public(
+    Public(
       id: try self.requireID(),
       name: self.name,
       user: user.asPublic(),
@@ -66,8 +76,7 @@ final class Goal: Model, Content, @unchecked Sendable {
       endDate: self.endDate,
       isCompleted: self.isCompleted,
       targetValue: self.targetValue,
-      category: self.category
-    )
+      category: self.category)
   }
 
   struct Public: Content {

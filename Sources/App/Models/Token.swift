@@ -8,11 +8,12 @@
 import Fluent
 import Vapor
 
+// MARK: - Token
+
 final class Token: Model, Content, @unchecked Sendable {
   static let schema = "tokens"
 
-  @ID
-  var id: UUID?
+  @ID var id: UUID?
 
   @Field(key: "token_value")
   var tokenValue: String
@@ -48,9 +49,11 @@ final class Token: Model, Content, @unchecked Sendable {
   }
 
   func asPublic() -> Token.Public {
-    return Token.Public(createdAt: self.createdAt, expiresAt: self.expiresAt, value: self.tokenValue)
+    Token.Public(createdAt: self.createdAt, expiresAt: self.expiresAt, value: self.tokenValue)
   }
 }
+
+// MARK: Token.Public
 
 extension Token {
   struct Public: Content {
@@ -60,7 +63,7 @@ extension Token {
   }
 }
 
-// MARK: - `ModelTokenAuthenticatable` conformance
+// MARK: ModelTokenAuthenticatable
 
 extension Token: ModelTokenAuthenticatable {
   static let valueKey = \Token.$tokenValue

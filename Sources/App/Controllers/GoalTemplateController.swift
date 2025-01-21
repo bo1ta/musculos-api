@@ -17,6 +17,6 @@ struct GoalTemplateController: RouteCollection {
   }
 
   func index(req: Request) async throws -> [GoalTemplate] {
-    return try await GoalTemplate.query(on: req.db).all()
+    try await GoalTemplate.query(on: req.db).all()
   }
 }

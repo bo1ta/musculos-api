@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Solomon Alexandru on 07.05.2024.
 //
@@ -18,7 +18,7 @@ struct CreateTokenTableMigration: AsyncMigration {
       .field("expires_at", .datetime)
       .create()
   }
-  
+
   func revert(on database: any Database) async throws {
     try await database.schema("tokens")
       .delete()

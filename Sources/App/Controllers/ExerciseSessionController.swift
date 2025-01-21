@@ -12,10 +12,9 @@ struct ExerciseSessionController: RouteCollection {
   func boot(routes: any RoutesBuilder) throws {
     let route = routes.apiV1Group("exercise-session")
       .grouped(
-        Token.authenticator()
-      )
+        Token.authenticator())
 
-    route.get(use:  { try await getAll(req: $0) })
+    route.get(use: { try await getAll(req: $0) })
     route.post(use: { try await create(req: $0) })
   }
 
@@ -39,7 +38,7 @@ struct ExerciseSessionController: RouteCollection {
     session.duration = content.duration
 
     session.$user.id = try currentUser.requireID()
-    session.$exercise.id  = content.exerciseID
+    session.$exercise.id = content.exerciseID
 
     try await session.save(on: req.db)
 

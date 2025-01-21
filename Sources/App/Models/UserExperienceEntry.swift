@@ -5,9 +5,9 @@
 //  Created by Solomon Alexandru on 15.12.2024.
 //
 
-import Vapor
 import Fluent
 import Foundation
+import Vapor
 
 final class UserExperienceEntry: Model, Content, @unchecked Sendable {
   static let schema = "user_experience_entries"
@@ -24,7 +24,7 @@ final class UserExperienceEntry: Model, Content, @unchecked Sendable {
   @Field(key: "xp_gained")
   var xpGained: Int
 
-  init() {}
+  init() { }
 
   init(id: UUID? = UUID(), userExperienceID: UserExperience.IDValue, exerciseSessionID: ExerciseSession.IDValue, xpGained: Int) {
     self.id = id

@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
   name: "Musculos",
   platforms: [
-     .macOS(.v13)
+    .macOS(.v13),
   ],
   dependencies: [
     // 💧 A server-side Swift web framework.
@@ -16,6 +16,7 @@ let package = Package(
     // 🍃 An expressive, performant, and extensible templating language built for Swift.
     .package(url: "https://github.com/vapor/leaf.git", from: "4.3.0"),
     .package(url: "https://github.com/vapor/jwt.git", from: "5.0.0-beta"),
+    .package(url: "https://github.com/vapor/apns.git", from: "4.0.0"),
   ],
   targets: [
     .executableTarget(
@@ -26,29 +27,25 @@ let package = Package(
         .product(name: "Leaf", package: "leaf"),
         .product(name: "Vapor", package: "vapor"),
         .product(name: "JWT", package: "jwt"),
+        .product(name: "VaporAPNS", package: "apns"),
       ],
       swiftSettings: swiftSettings,
       linkerSettings: [.unsafeFlags(
         [
           "-Xlinker",
-          "-interposable"
+          "-interposable",
         ],
         .when(
           platforms: [.macOS],
-          configuration: .debug
-        )
-      )]
-    ),
+          configuration: .debug))]),
     .testTarget(
       name: "AppTests",
       dependencies: [
         .target(name: "App"),
         .product(name: "XCTVapor", package: "vapor"),
       ],
-      swiftSettings: swiftSettings
-    ),
-  ]
-)
+      swiftSettings: swiftSettings),
+  ])
 
 var swiftSettings: [SwiftSetting] { [
   .enableUpcomingFeature("DisableOutwardActorInference"),

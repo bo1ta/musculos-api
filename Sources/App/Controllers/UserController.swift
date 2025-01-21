@@ -6,8 +6,10 @@
 //
 
 import Fluent
-import Vapor
 import JWT
+import Vapor
+
+// MARK: - UserController
 
 struct UserController: RouteCollection {
   func boot(routes: any RoutesBuilder) throws {
@@ -16,7 +18,7 @@ struct UserController: RouteCollection {
     users.post("register") { request in
       try await register(request)
     }
-    
+
     users.post("login") { request in
       try await login(request)
     }
@@ -61,8 +63,7 @@ struct UserController: RouteCollection {
     let user = try User(
       username: create.username,
       email: create.email,
-      passwordHash: Bcrypt.hash(create.password)
-    )
+      passwordHash: Bcrypt.hash(create.password))
     try await user.save(on: req.db)
 
     let token = try Token.create(for: user)
@@ -70,13 +71,15 @@ struct UserController: RouteCollection {
 
     return SessionResponse(token: token.asPublic(), user: user.asPublic())
   }
-  
+
   func login(_ req: Request) async throws -> SessionResponse {
     let userAuth = try req.content.decode(User.SignIn.self)
 
-    guard let user = try await User.query(on: req.db)
-      .filter(\.$email == userAuth.email)
-      .first() else {
+    guard
+      let user = try await User.query(on: req.db)
+        .filter(\.$email == userAuth.email)
+        .first()
+    else {
       throw Abort(.notFound, reason: "User not found")
     }
 
@@ -91,7 +94,7 @@ struct UserController: RouteCollection {
   }
 
   func getMyProfile(_ req: Request) async throws -> User.Public {
-    return try req.auth.require(User.self).asPublic()
+    try req.auth.require(User.self).asPublic()
   }
 }
 

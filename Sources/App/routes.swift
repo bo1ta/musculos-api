@@ -9,4 +9,6 @@ func routes(_ app: Application) throws {
   try app.register(collection: GoalController())
   try app.register(collection: ExerciseRatingController())
   try app.register(collection: ImageController())
+  try app.register(collection: ChatController())
+  try app.register(collection: WorkoutChallengeController())
 }

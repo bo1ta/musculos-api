@@ -8,8 +8,8 @@
 import Fluent
 import Vapor
 
-struct ExperienceService {
-  static func updateUserExperience(for session: ExerciseSession, req: Request) async throws  -> UserExperienceEntry {
+enum ExperienceService {
+  static func updateUserExperience(for session: ExerciseSession, req: Request) async throws -> UserExperienceEntry {
     let userExperience = try await UserExperience.query(on: req.db)
       .filter(\.$user.$id == session.user.id!)
       .first()

@@ -5,8 +5,8 @@
 //  Created by Solomon Alexandru on 25.10.2024.
 //
 
-import Vapor
 import Fluent
+import Vapor
 
 final class CreateGoalTableMigration: AsyncMigration {
   func prepare(on database: any Database) async throws {

@@ -5,17 +5,18 @@
 //  Created by Solomon Alexandru on 06.05.2024.
 //
 
-import Foundation
 import Fluent
+import Foundation
 import Vapor
+
+// MARK: - ExerciseController
 
 struct ExerciseController: RouteCollection {
   func boot(routes: any RoutesBuilder) throws {
     let exerciseRoute = routes
       .apiV1Group("exercises")
       .grouped(
-        Token.authenticator()
-      )
+        Token.authenticator())
 
     exerciseRoute.get(use: { try await self.index(req: $0) })
     exerciseRoute.get(":exerciseID", use: { try await self.getByID(req: $0) })
@@ -66,11 +67,11 @@ struct ExerciseController: RouteCollection {
 
     var exercises = try await Exercise.query(on: req.db).all()
 
-    if let muscle = muscle {
+    if let muscle {
       exercises = exercises.filter { $0.primaryMuscles.contains(muscle) }
     }
 
-    if let muscleGroup = muscleGroup, let muscleGroupType = MuscleGroup(rawValue: muscleGroup.lowercased()) {
+    if let muscleGroup, let muscleGroupType = MuscleGroup(rawValue: muscleGroup.lowercased()) {
       let groupMuscles = muscleGroupType.muscles.map(\.rawValue)
 
       exercises = exercises.filter { exercise in
@@ -78,7 +79,7 @@ struct ExerciseController: RouteCollection {
       }
     }
 
-    if let name = name {
+    if let name {
       exercises = exercises.filter { $0.name.localizedCaseInsensitiveContains(name) }
     }
 
@@ -103,9 +104,9 @@ struct ExerciseController: RouteCollection {
 
     let isCurrentlyFavorite = try await currentUser.$favoriteExercises.isAttached(to: exercise, on: req.db)
 
-    if favoriteRequest.isFavorite && !isCurrentlyFavorite {
+    if favoriteRequest.isFavorite, !isCurrentlyFavorite {
       try await currentUser.$favoriteExercises.attach(exercise, on: req.db)
-    } else if !favoriteRequest.isFavorite && isCurrentlyFavorite {
+    } else if !favoriteRequest.isFavorite, isCurrentlyFavorite {
       try await currentUser.$favoriteExercises.detach(exercise, on: req.db)
     }
 
@@ -123,8 +124,7 @@ struct ExerciseController: RouteCollection {
     let isFavoriteExercise = try await currentUser.$favoriteExercises.isAttached(to: exercise, on: req.db)
     return FavoriteExercise(
       exerciseID: checkFavoriteRequest.exerciseID,
-      isFavorite: isFavoriteExercise
-    )
+      isFavorite: isFavoriteExercise)
   }
 
   func getFavorites(req: Request) async throws -> [Exercise] {

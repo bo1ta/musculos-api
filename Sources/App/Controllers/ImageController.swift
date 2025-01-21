@@ -5,16 +5,17 @@
 //  Created by Solomon Alexandru on 28.12.2024.
 //
 
-import Vapor
 import Foundation
+import Vapor
+
+// MARK: - ImageController
 
 struct ImageController: RouteCollection {
   func boot(routes: any RoutesBuilder) throws {
     let imagesRoute = routes
       .apiV1Group("images")
       .grouped(
-        Token.authenticator()
-      )
+        Token.authenticator())
 
     imagesRoute.grouped("upload")
       .on(.POST, body: .collect(maxSize: "10mb"), use: { try await upload(req: $0) })
@@ -31,8 +32,7 @@ struct ImageController: RouteCollection {
 
     try FileManager.default.createDirectory(
       atPath: imagesPath,
-      withIntermediateDirectories: true
-    )
+      withIntermediateDirectories: true)
 
     let path = imagesPath + "/" + fileName
     try await req.fileio.writeFile(.init(data: data.picture), at: path)

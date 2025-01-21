@@ -5,9 +5,11 @@
 //  Created by Solomon Alexandru on 23.11.2024.
 //
 
-import Foundation
 import Fluent
+import Foundation
 import Vapor
+
+// MARK: - ExerciseRatingController
 
 struct ExerciseRatingController: RouteCollection {
   func boot(routes: any RoutesBuilder) throws {
@@ -55,6 +57,8 @@ struct ExerciseRatingController: RouteCollection {
       .map { try $0.asPublic() }
   }
 }
+
+// MARK: ExerciseRatingController.CreateContent
 
 extension ExerciseRatingController {
   struct CreateContent: Content {

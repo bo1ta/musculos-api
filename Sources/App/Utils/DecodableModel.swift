@@ -1,11 +1,13 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Solomon Alexandru on 06.05.2024.
 //
 
 import Foundation
+
+// MARK: - DecodableModel
 
 /// Utility that decodes Data into  a Codable object
 /// Supports single objects or arrays
@@ -21,7 +23,7 @@ extension DecodableModel where Self: Codable {
     decoder.keyDecodingStrategy = .convertFromSnakeCase
     return try decoder.decode(Self.self, from: data)
   }
-  
+
   static func createArrayFrom(_ data: Data) throws -> [Self] {
     let decoder = JSONDecoder()
     decoder.keyDecodingStrategy = .convertFromSnakeCase

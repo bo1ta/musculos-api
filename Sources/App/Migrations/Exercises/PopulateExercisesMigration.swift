@@ -1,6 +1,6 @@
 //
 //  PopulateExercisesMigration.swift
-//  
+//
 //
 //  Created by Solomon Alexandru on 21.07.2024.
 //
@@ -15,8 +15,7 @@ final class PopulateExercisesMigration: AsyncMigration {
     self.resourcesDirectory = resourcesDirectory
   }
 
-  func revert(on database: Database) async throws {
-  }
+  func revert(on _: Database) async throws { }
 
   func prepare(on database: Database) async throws {
     let fileName = "exercises.json"

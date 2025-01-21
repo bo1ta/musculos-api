@@ -5,8 +5,8 @@
 //  Created by Solomon Alexandru on 26.10.2024.
 //
 
-import Vapor
 import Fluent
+import Vapor
 
 final class ProgressEntry: Model, Content, @unchecked Sendable {
   static let schema = "progressEntries"
@@ -23,7 +23,7 @@ final class ProgressEntry: Model, Content, @unchecked Sendable {
   @Parent(key: "goal_id")
   var goal: Goal
 
-  init() {}
+  init() { }
 
   init(id: UUID? = nil, dateAdded: Date, value: Double, goalID: UUID) {
     self.id = id

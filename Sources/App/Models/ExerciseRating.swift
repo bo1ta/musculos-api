@@ -5,8 +5,10 @@
 //  Created by Solomon Alexandru on 23.11.2024.
 //
 
-import Vapor
 import Fluent
+import Vapor
+
+// MARK: - ExerciseRating
 
 final class ExerciseRating: Model, Content, @unchecked Sendable {
   static let schema = "exercise_ratings"
@@ -29,7 +31,7 @@ final class ExerciseRating: Model, Content, @unchecked Sendable {
   @Field(key: "comment")
   var comment: String?
 
-  init() {}
+  init() { }
 
   init(id: UUID? = nil, userID: User.IDValue, exerciseID: Exercise.IDValue, rating: Double, comment: String? = nil) {
     self.id = id
@@ -40,15 +42,16 @@ final class ExerciseRating: Model, Content, @unchecked Sendable {
   }
 
   func asPublic() throws -> Public {
-    return try Public(
+    try Public(
       ratingID: self.requireID(),
       userID: $user.id,
       exerciseID: $exercise.id,
       rating: rating,
-      comment: comment
-    )
+      comment: comment)
   }
 }
+
+// MARK: ExerciseRating.Public
 
 extension ExerciseRating {
   struct Public: Content {

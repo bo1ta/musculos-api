@@ -5,9 +5,9 @@
 //  Created by Solomon Alexandru on 15.12.2024.
 //
 
+import Fluent
 import Foundation
 import Vapor
-import Fluent
 
 final class UserExperience: Model, Content, @unchecked Sendable {
   static let schema = "user_experience"
@@ -24,5 +24,5 @@ final class UserExperience: Model, Content, @unchecked Sendable {
   @Children(for: \.$userExperience)
   var experienceEntries: [UserExperienceEntry]
 
-  init() {}
+  init() { }
 }

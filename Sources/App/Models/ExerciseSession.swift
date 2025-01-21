@@ -5,8 +5,8 @@
 //  Created by Solomon Alexandru on 12.10.2024.
 //
 
-import Vapor
 import Fluent
+import Vapor
 
 final class ExerciseSession: Model, Content, @unchecked Sendable {
   static let schema = "exerciseSessions"
@@ -26,7 +26,7 @@ final class ExerciseSession: Model, Content, @unchecked Sendable {
   @Parent(key: "exercise_id")
   var exercise: Exercise
 
-  init() {}
+  init() { }
 
   init(id: UUID = UUID(), dateAdded: Date, duration: Double, userID: User.IDValue, exerciseID: Exercise.IDValue) {
     self.id = id
@@ -37,7 +37,12 @@ final class ExerciseSession: Model, Content, @unchecked Sendable {
   }
 
   func asPublic() throws -> Public {
-    return try Public(sessionId: self.requireID(), dateAdded: self.dateAdded, user: self.user.asPublic(), exercise: exercise.asPublic(isFavorite: false), duration: self.duration)
+    try Public(
+      sessionId: self.requireID(),
+      dateAdded: self.dateAdded,
+      user: self.user.asPublic(),
+      exercise: exercise.asPublic(isFavorite: false),
+      duration: self.duration)
   }
 
   struct Public: Content {

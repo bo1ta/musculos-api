@@ -9,7 +9,7 @@ import Fluent
 import Vapor
 
 extension Response {
-  static func withCacheControl<T: Content>(maxAge: Int, data: T, contentType: HTTPMediaType = .json) throws -> Response {
+  static func withCacheControl(maxAge: Int, data: some Content, contentType: HTTPMediaType = .json) throws -> Response {
     let response = Response()
     response.headers.replaceOrAdd(name: .cacheControl, value: "max-age=\(maxAge), public")
     response.headers.replaceOrAdd(name: .contentType, value: contentType.description)

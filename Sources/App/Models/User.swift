@@ -5,23 +5,25 @@
 //  Created by Solomon Alexandru on 06.05.2024.
 //
 
-import Foundation
-import Vapor
 import Fluent
+import Foundation
 import JWT
+import Vapor
+
+// MARK: - User
 
 final class User: Model, Content, @unchecked Sendable {
-  static let schema: String = "users"
-  
+  static let schema = "users"
+
   @ID(key: .id)
   var id: UUID?
-  
+
   @Field(key: "username")
   var username: String
-  
+
   @Field(key: "email")
   var email: String
-  
+
   @Field(key: "password_hash")
   var passwordHash: String
 
@@ -56,7 +58,7 @@ final class User: Model, Content, @unchecked Sendable {
   var userExperience: UserExperience?
 
   init() { }
-  
+
   init(
     id: UUID? = nil,
     username: String,
@@ -67,8 +69,8 @@ final class User: Model, Content, @unchecked Sendable {
     level: String? = nil,
     primaryGoalID: UUID? = nil,
     isOnboarded: Bool = false,
-    xp: Int = 0
-  ) {
+    xp: Int = 0)
+  {
     self.id = id
     self.username = username
     self.email = email
@@ -82,7 +84,7 @@ final class User: Model, Content, @unchecked Sendable {
   }
 
   func asPublic() -> User.Public {
-    return User.Public(
+    User.Public(
       username: self.username,
       email: self.email,
       id: self.id,
@@ -92,8 +94,7 @@ final class User: Model, Content, @unchecked Sendable {
       isOnboarded: self.isOnboarded,
       xp: self.xp,
       primaryGoalID: self.primaryGoalID,
-      totalExperience: self.$userExperience.value??.totalExperience ?? 0
-    )
+      totalExperience: self.$userExperience.value??.totalExperience ?? 0)
   }
 }
 
@@ -128,6 +129,8 @@ extension User {
     var totalExperience: Int
   }
 }
+
+// MARK: ModelAuthenticatable
 
 extension User: ModelAuthenticatable {
   static let usernameKey = \User.$email

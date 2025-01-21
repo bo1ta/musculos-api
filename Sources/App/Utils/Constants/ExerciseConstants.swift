@@ -5,7 +5,7 @@
 //  Created by Solomon Alexandru on 28.09.2024.
 //
 
-public struct ExerciseConstants {
+public enum ExerciseConstants {
   public enum ForceType: String, CaseIterable {
     case pull, push, `static`
   }
@@ -47,29 +47,29 @@ public struct ExerciseConstants {
     .general: [
       CategoryType.cardio.rawValue,
       CategoryType.stretching.rawValue,
-      CategoryType.strength.rawValue
+      CategoryType.strength.rawValue,
     ],
     .flexibility: [
-      CategoryType.stretching.rawValue
+      CategoryType.stretching.rawValue,
     ],
     .improveEndurance: [
-      CategoryType.cardio.rawValue
+      CategoryType.cardio.rawValue,
     ],
     .increaseStrength: [
       CategoryType.strength.rawValue,
       CategoryType.powerlifting.rawValue,
       CategoryType.strongman.rawValue,
-      CategoryType.olympicWeightlifting.rawValue
+      CategoryType.olympicWeightlifting.rawValue,
     ],
     .growMuscles: [
       CategoryType.strength.rawValue,
       CategoryType.powerlifting.rawValue,
       CategoryType.strongman.rawValue,
-      CategoryType.olympicWeightlifting.rawValue
+      CategoryType.olympicWeightlifting.rawValue,
     ],
     .loseWeight: [
       CategoryType.cardio.rawValue,
-      CategoryType.stretching.rawValue
-    ]
+      CategoryType.stretching.rawValue,
+    ],
   ]
 }

@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Solomon Alexandru on 12.09.2024.
 //
@@ -20,7 +20,7 @@ final class UserFavoriteExercise: Model, @unchecked Sendable {
   @Parent(key: "exercise_id")
   var exercise: Exercise
 
-  init() {}
+  init() { }
 
   init(id: UUID? = nil, userID: User.IDValue, exerciseID: Exercise.IDValue) {
     self.id = id
