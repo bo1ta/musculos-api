@@ -21,7 +21,6 @@ struct CreateUserTableMigration: AsyncMigration {
       .field("level", .string)
       .field("primary_goal_id", .uuid)
       .field("is_onboarded", .bool, .sql(.default(false)))
-      .field("xp", .int, .sql(.default(0)))
       .unique(on: "email")
       .unique(on: "username")
       .create()

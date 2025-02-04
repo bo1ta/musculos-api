@@ -42,9 +42,6 @@ final class User: Model, Content, @unchecked Sendable {
   @Field(key: "is_onboarded")
   var isOnboarded: Bool
 
-  @Field(key: "xp")
-  var xp: Int
-
   @Siblings(through: UserFavoriteExercise.self, from: \.$user, to: \.$exercise)
   var favoriteExercises: [Exercise]
 
@@ -68,8 +65,7 @@ final class User: Model, Content, @unchecked Sendable {
     height: Double? = nil,
     level: String? = nil,
     primaryGoalID: UUID? = nil,
-    isOnboarded: Bool = false,
-    xp: Int = 0)
+    isOnboarded: Bool = false)
   {
     self.id = id
     self.username = username
@@ -80,7 +76,6 @@ final class User: Model, Content, @unchecked Sendable {
     self.level = level
     self.primaryGoalID = primaryGoalID
     self.isOnboarded = isOnboarded
-    self.xp = xp
   }
 
   func asPublic() -> User.Public {
@@ -92,9 +87,13 @@ final class User: Model, Content, @unchecked Sendable {
       height: self.height,
       level: self.level,
       isOnboarded: self.isOnboarded,
-      xp: self.xp,
       primaryGoalID: self.primaryGoalID,
-      totalExperience: self.$userExperience.value??.totalExperience ?? 0)
+      totalExperience: self.$userExperience.value??.totalExperience ?? 0,
+      userExperience: $userExperience.value??.asPublic())
+  }
+
+  func isExerciseFavorite(_ exercise: Exercise, on db: Database) async throws -> Bool {
+    try await $favoriteExercises.isAttached(to: exercise, on: db)
   }
 }
 
@@ -124,9 +123,9 @@ extension User {
     var height: Double?
     var level: String?
     var isOnboarded: Bool
-    var xp: Int
     var primaryGoalID: UUID?
     var totalExperience: Int
+    var userExperience: UserExperience.Public?
   }
 }
 

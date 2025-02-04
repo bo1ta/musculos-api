@@ -26,3 +26,19 @@ final class UserExperience: Model, Content, @unchecked Sendable {
 
   init() { }
 }
+
+extension UserExperience {
+  func asPublic() -> UserExperience.Public {
+    .init(
+      id: id,
+      totalExperience: totalExperience,
+      experienceEntries: experienceEntries
+    )
+  }
+
+  struct Public: Content {
+    var id: UUID?
+    var totalExperience: Int
+    var experienceEntries: [UserExperienceEntry]
+  }
+}

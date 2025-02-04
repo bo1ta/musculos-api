@@ -9,43 +9,35 @@ import Fluent
 import Vapor
 
 enum ExperienceService {
-  static func updateUserExperience(for session: ExerciseSession, req: Request) async throws -> UserExperienceEntry {
-    let userExperience = try await UserExperience.query(on: req.db)
-      .filter(\.$user.$id == session.user.id!)
-      .first()
+  static func updateUserExperience(for session: ExerciseSession, on db: Database) async throws -> UserExperienceEntry {
+    let userExperience = try await fetchOrCreateUserExperience(for: session.user, on: db)
+    let xpEntry = try await createExperienceEntry(for: session, userExperience: userExperience, on: db)
 
-    if userExperience == nil {
-      let newUserExperience = UserExperience()
-      newUserExperience.$user.id = session.user.id!
-      newUserExperience.totalExperience = 0
-      try await newUserExperience.save(on: req.db)
+    userExperience.totalExperience += xpEntry.xpGained
+    try await userExperience.save(on: db)
 
-      let xpEntry = UserExperienceEntry()
-      xpEntry.$exerciseSession.id = try session.requireID()
-      xpEntry.$userExperience.id = try newUserExperience.requireID()
-      xpEntry.xpGained = calculateExperience(for: session.exercise, session: session)
+    try await xpEntry.$userExperience.load(on: db)
+    return xpEntry
+  }
 
-      try await xpEntry.save(on: req.db)
-
-      newUserExperience.totalExperience += xpEntry.xpGained
-      try await newUserExperience.save(on: req.db)
-
-      try await xpEntry.$userExperience.load(on: req.db)
-      return xpEntry
+  private static func fetchOrCreateUserExperience(for user: User, on db: Database) async throws -> UserExperience {
+    if let existingExperience = try await UserExperience.query(on: db)
+      .filter(\.$user.$id == user.id!)
+      .first() {
+      return existingExperience
     } else {
-      let xpEntry = UserExperienceEntry()
-      xpEntry.$exerciseSession.id = try session.requireID()
-      xpEntry.$userExperience.id = try userExperience!.requireID()
-      xpEntry.xpGained = calculateExperience(for: session.exercise, session: session)
-
-      try await xpEntry.save(on: req.db)
-
-      userExperience!.totalExperience += xpEntry.xpGained
-      try await userExperience!.save(on: req.db)
-
-      try await xpEntry.$userExperience.load(on: req.db)
-      return xpEntry
+      let userExperience = UserExperience()
+      userExperience.$user.id = try user.requireID()
+      userExperience.totalExperience = 0
+      try await userExperience.save(on: db)
+      return userExperience
     }
+  }
+
+  private static func createExperienceEntry(for session: ExerciseSession, userExperience: UserExperience, on db: Database) async throws -> UserExperienceEntry {
+    let xpEntry = UserExperienceEntry(userExperienceID: try userExperience.requireID(), exerciseSessionID: try session.requireID(), xpGained: calculateExperience(for: session.exercise, session: session))
+    try await xpEntry.save(on: db)
+    return xpEntry
   }
 
   private static func calculateExperience(for exercise: Exercise, session: ExerciseSession) -> Int {

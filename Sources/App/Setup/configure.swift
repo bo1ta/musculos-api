@@ -9,30 +9,29 @@ import Vapor
 import VaporAPNS
 
 public func configure(_ app: Application) async throws {
-  // uncomment to serve files from /Public folder
-  // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
-
-  #if DEBUG && os(macOS)
-  Bundle(path: "/Applications/InjectionIII.app/Contents/Resources/macOSInjection.bundle")?.load()
-  #endif
-
-  app.databases.use(DatabaseConfigurationFactory.postgres(
-    configuration: .init(
-      hostname: Environment.get("DATABASE_HOST") ?? "postgres",
-      port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? SQLPostgresConfiguration.ianaPortNumber,
-      username: Environment.get("DATABASE_USERNAME") ?? "postgres",
-      password: Environment.get("DATABASE_PASSWORD") ?? "password",
-      database: Environment.get("DATABASE_NAME") ?? "exercises",
-      tls: .prefer(try .init(configuration: .clientDefault)))), as: .psql)
-
-  app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+  try setupDatabase(app)
+  setupMiddlewares(app)
 
   await app.jwt.keys.add(hmac: .init(stringLiteral: "secret"), digestAlgorithm: .sha256)
 
   try await setupMigrationConfiguration(app)
 
-  app.views.use(.leaf)
   try routes(app)
+}
+
+private func setupMiddlewares(_ app: Application) {
+  app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+}
+
+private func setupDatabase(_ app: Application) throws {
+  app.databases.use(DatabaseConfigurationFactory.postgres(
+     configuration: .init(
+       hostname: Environment.get("DATABASE_HOST") ?? "postgres",
+       port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? SQLPostgresConfiguration.ianaPortNumber,
+       username: Environment.get("DATABASE_USERNAME") ?? "postgres",
+       password: Environment.get("DATABASE_PASSWORD") ?? "password",
+       database: Environment.get("DATABASE_NAME") ?? "exercises",
+       tls: .prefer(try .init(configuration: .clientDefault)))), as: .psql)
 }
 
 private func setupMigrationConfiguration(_ app: Application) async throws {

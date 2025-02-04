@@ -96,8 +96,6 @@ extension WorkoutChallenge {
         let shuffledExercises = exercises.shuffled()
         let dayExercises = Array(shuffledExercises.prefix(input.exercisesPerDay))
 
-        // Create workout exercises
-        var workoutExercises: [WorkoutExercise] = []
         for exercise in dayExercises {
           let workoutExercise = try WorkoutExercise(
             dailyWorkoutID: dailyWorkout.requireID(),
@@ -108,12 +106,8 @@ extension WorkoutChallenge {
             maxValue: generateMaxValue(for: exercise, level: input.level),
             measurement: determineMeasurement(for: exercise))
 
-          try await workoutExercise.save(on: database)
-          workoutExercises.append(workoutExercise)
+          try await workoutExercise.create(on: database)
         }
-
-        // Attach the workout exercises to the daily workout
-        dailyWorkout.workoutExercises = workoutExercises
       }
     }
 

@@ -26,7 +26,7 @@ final class UserExperienceEntry: Model, Content, @unchecked Sendable {
 
   init() { }
 
-  init(id: UUID? = UUID(), userExperienceID: UserExperience.IDValue, exerciseSessionID: ExerciseSession.IDValue, xpGained: Int) {
+  init(id: UUID? = nil, userExperienceID: UserExperience.IDValue, exerciseSessionID: ExerciseSession.IDValue, xpGained: Int) {
     self.id = id
     self.$userExperience.id = userExperienceID
     self.$exerciseSession.id = exerciseSessionID

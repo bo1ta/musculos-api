@@ -9,19 +9,25 @@ import Fluent
 import Foundation
 import Vapor
 
-// MARK: - ExerciseController
+struct ExerciseController: RouteCollection, Sendable {
+  typealias API = ExercisesAPI
 
-struct ExerciseController: RouteCollection {
+  private let repository: ExerciseRepositoryProtocol
+
+  init(repository: ExerciseRepositoryProtocol = ExerciseRepository()) {
+    self.repository = repository
+  }
+
   func boot(routes: any RoutesBuilder) throws {
     let exerciseRoute = routes
-      .apiV1Group("exercises")
+      .apiV1Group(API.endpoint)
       .grouped(
         Token.authenticator())
 
     exerciseRoute.get(use: { try await self.index(req: $0) })
-    exerciseRoute.get(":exerciseID", use: { try await self.getByID(req: $0) })
-    exerciseRoute.get("getByGoals", use: { try await self.getExercisesByGoal(req: $0) })
-    exerciseRoute.get("filtered", use: { try await self.getFilteredExercises(req: $0) })
+    exerciseRoute.get(API.GET.getByID, use: { try await self.getByID(req: $0) })
+    exerciseRoute.get(API.GET.getByGoals, use: { try await self.getExercisesByGoal(req: $0) })
+    exerciseRoute.get(API.GET.filtered, use: { try await self.getFilteredExercises(req: $0) })
     exerciseRoute.post(use: { try await self.create(req: $0) })
 
     let favoriteRoute = exerciseRoute.grouped("favorites")
@@ -31,14 +37,8 @@ struct ExerciseController: RouteCollection {
 
   func index(req: Request) async throws -> Response {
     let currentUser = try req.auth.require(User.self)
-    let exercises = try await Exercise.query(on: req.db).limit(20).all()
-
-    let publicExercises = try await exercises.asyncMap { exercise in
-      let isFavorite = try await currentUser.$favoriteExercises.isAttached(to: exercise, on: req.db)
-      return exercise.asPublic(isFavorite: isFavorite)
-    }
-
-    return try Response.withCacheControl(maxAge: 1800, data: publicExercises)
+    let exercises = try await repository.getExercisesForUser(currentUser, limit: 20, on: req.db)
+    return try Response.withCacheControl(maxAge: Constants.defaultCacheAge, data: exercises)
   }
 
   func getByID(req: Request) async throws -> Exercise.Public {
@@ -47,13 +47,7 @@ struct ExerciseController: RouteCollection {
     guard let exerciseID = req.parameters.get("exerciseID", as: UUID.self) else {
       throw Abort(.badRequest)
     }
-
-    guard let exercise = try await Exercise.find(exerciseID, on: req.db) else {
-      throw Abort(.notFound)
-    }
-
-    let isFavorite = try await currentUser.$favoriteExercises.isAttached(to: exercise, on: req.db)
-    return exercise.asPublic(isFavorite: isFavorite)
+    return try await repository.getExerciseForUser(currentUser, exerciseID: exerciseID, on: req.db)
   }
 
   func getFilteredExercises(req: Request) async throws -> Response {
@@ -65,117 +59,51 @@ struct ExerciseController: RouteCollection {
       throw Abort(.badRequest, reason: "At least one filter parameter (muscle, muscleGroup, or name) is required.")
     }
 
-    var exercises = try await Exercise.query(on: req.db).all()
-
-    if let muscle {
-      exercises = exercises.filter { $0.primaryMuscles.contains(muscle) }
-    }
-
-    if let muscleGroup, let muscleGroupType = MuscleGroup(rawValue: muscleGroup.lowercased()) {
-      let groupMuscles = muscleGroupType.muscles.map(\.rawValue)
-
-      exercises = exercises.filter { exercise in
-        exercise.primaryMuscles.contains { groupMuscles.contains($0) }
-      }
-    }
-
-    if let name {
-      exercises = exercises.filter { $0.name.localizedCaseInsensitiveContains(name) }
-    }
-
-    let publicExercises = exercises.map { $0.asPublic() }
-    return try Response.withCacheControl(maxAge: 1800, data: publicExercises)
+    let exercises = try await repository.getFiltered(muscle: muscle, muscleGroup: muscleGroup, name: name, on: req.db)
+    return try Response.withCacheControl(maxAge: Constants.defaultCacheAge, data: exercises)
   }
 
   func create(req: Request) async throws -> Exercise {
     let exercise = try req.content.decode(Exercise.self)
-
-    try await exercise.save(on: req.db)
-    return exercise
+    return try await repository.create(exercise, on: req.db)
   }
 
   func favoriteExercise(req: Request) async throws -> Exercise {
     let currentUser = try req.auth.require(User.self)
+    let favoriteRequest = try req.content.decode(API.POST.FavoriteExercise.self)
 
-    let favoriteRequest = try req.content.decode(FavoriteExercise.self)
-    guard let exercise = try await Exercise.find(favoriteRequest.exerciseID, on: req.db) else {
-      throw Abort(.notFound)
-    }
-
-    let isCurrentlyFavorite = try await currentUser.$favoriteExercises.isAttached(to: exercise, on: req.db)
-
-    if favoriteRequest.isFavorite, !isCurrentlyFavorite {
-      try await currentUser.$favoriteExercises.attach(exercise, on: req.db)
-    } else if !favoriteRequest.isFavorite, isCurrentlyFavorite {
-      try await currentUser.$favoriteExercises.detach(exercise, on: req.db)
-    }
-
-    return exercise
+    return try await repository.setIsFavorite(
+      favoriteRequest.exerciseID,
+      isFavorite: favoriteRequest.isFavorite,
+      user: currentUser,
+      on: req.db)
   }
 
-  func isFavoriteExercise(req: Request) async throws -> FavoriteExercise {
+  func isFavoriteExercise(req: Request) async throws -> (exerciseID: UUID, isFavorite: Bool) {
     let currentUser = try req.auth.require(User.self)
-    let checkFavoriteRequest = try req.content.decode(IsFavoriteExercise.self)
+    let request = try req.content.decode(API.GET.IsFavoriteExercise.self)
 
-    guard let exercise = try await Exercise.find(checkFavoriteRequest.exerciseID, on: req.db) else {
-      throw Abort(.notFound)
-    }
-
-    let isFavoriteExercise = try await currentUser.$favoriteExercises.isAttached(to: exercise, on: req.db)
-    return FavoriteExercise(
-      exerciseID: checkFavoriteRequest.exerciseID,
-      isFavorite: isFavoriteExercise)
+    let isFavorite = try await repository.isFavorite(exerciseID: request.exerciseID, for: currentUser, on: req.db)
+    return (exerciseID: request.exerciseID, isFavorite: isFavorite)
   }
 
   func getFavorites(req: Request) async throws -> [Exercise] {
     let currentUser = try req.auth.require(User.self)
-    return try await currentUser.$favoriteExercises.get(on: req.db)
+    return try await repository.getUserFavorites(currentUser, on: req.db)
   }
 
   func delete(req: Request) async throws -> HTTPStatus {
-    guard let exercise = try await Exercise.find(req.parameters.get("exerciseID"), on: req.db) else {
+    guard let uuidString = req.parameters.get("exerciseID"), let exerciseID = UUID(uuidString: uuidString) else {
       throw Abort(.notFound)
     }
 
-    try await exercise.delete(on: req.db)
+    try await repository.delete(exerciseID, on: req.db)
     return .noContent
   }
 
   public func getExercisesByGoal(req: Request) async throws -> Response {
-    let goal = try req.query.get(WorkoutGoal.self, at: "goal")
-    let categories = ExerciseConstants.goalToExerciseCategories[goal] ?? []
-    guard !categories.isEmpty else {
-      throw Abort(.notFound)
-    }
-
-    let exercises = try await Exercise.query(on: req.db)
-      .filter(\.$category ~~ categories)
-      .limit(25)
-      .all()
-
-    let publicExercises = exercises.map { $0.asPublic(isFavorite: false) }
-    return try Response.withCacheControl(maxAge: 1800, data: publicExercises)
-  }
-}
-
-// MARK: - Internal Models
-
-extension ExerciseController {
-  struct FavoriteExercise: Content {
-    let exerciseID: UUID
-    let isFavorite: Bool
-
-    enum CodingKeys: String, CodingKey {
-      case exerciseID = "exercise_id"
-      case isFavorite = "is_favorite"
-    }
-  }
-
-  struct IsFavoriteExercise: Content {
-    let exerciseID: UUID
-
-    enum CodingKeys: String, CodingKey {
-      case exerciseID = "exercise_id"
-    }
+    let workoutGoal = try req.query.get(WorkoutGoal.self, at: "goal")
+    let exercises = try await repository.getByWorkoutGoal(workoutGoal, on: req.db)
+    return try Response.withCacheControl(maxAge: 1800, data: exercises)
   }
 }
