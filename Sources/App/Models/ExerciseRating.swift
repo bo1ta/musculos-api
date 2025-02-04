@@ -33,12 +33,20 @@ final class ExerciseRating: Model, Content, @unchecked Sendable {
 
   init() { }
 
-  init(id: UUID? = nil, userID: User.IDValue, exerciseID: Exercise.IDValue, rating: Double, comment: String? = nil) {
+  init(
+    id: UUID? = nil,
+    userID: User.IDValue,
+    exerciseID: Exercise.IDValue,
+    rating: Double,
+    comment: String? = nil,
+    isPublic: Bool)
+  {
     self.id = id
     self.$user.id = userID
     self.$exercise.id = exerciseID
     self.rating = rating
     self.comment = comment
+    self.isPublic = isPublic
   }
 
   func asPublic() throws -> Public {

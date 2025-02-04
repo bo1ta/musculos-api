@@ -100,10 +100,10 @@ extension WorkoutChallenge {
           let workoutExercise = try WorkoutExercise(
             dailyWorkoutID: dailyWorkout.requireID(),
             exerciseID: exercise.requireID(),
-            numberOfReps: generateReps(for: exercise, level: input.level),
+            numberOfReps: generateReps(level: input.level),
             isCompleted: false,
-            minValue: generateMinValue(for: exercise, level: input.level),
-            maxValue: generateMaxValue(for: exercise, level: input.level),
+            minValue: generateMinValue(level: input.level),
+            maxValue: generateMaxValue(level: input.level),
             measurement: determineMeasurement(for: exercise))
 
           try await workoutExercise.create(on: database)
@@ -116,8 +116,7 @@ extension WorkoutChallenge {
     return challenge
   }
 
-  private static func generateReps(for _: Exercise, level: String) -> Int {
-    // Custom logic to determine appropriate number of reps based on exercise type and level
+  private static func generateReps(level: String) -> Int {
     switch level {
     case "beginner":
       Int.random(in: 5...12)
@@ -130,8 +129,7 @@ extension WorkoutChallenge {
     }
   }
 
-  private static func generateMinValue(for _: Exercise, level: String) -> Int {
-    // Custom logic for minimum values (e.g., weights, duration)
+  private static func generateMinValue(level: String) -> Int {
     switch level {
     case "beginner":
       5
@@ -144,8 +142,7 @@ extension WorkoutChallenge {
     }
   }
 
-  private static func generateMaxValue(for _: Exercise, level: String) -> Int {
-    // Custom logic for maximum values
+  private static func generateMaxValue(level: String) -> Int {
     switch level {
     case "beginner":
       15
@@ -159,7 +156,6 @@ extension WorkoutChallenge {
   }
 
   private static func determineMeasurement(for exercise: Exercise) -> String {
-    // Determine appropriate measurement based on exercise category
     if exercise.category.contains("cardio") {
       "minutes"
     } else if exercise.equipment?.contains("dumbbell") ?? false {

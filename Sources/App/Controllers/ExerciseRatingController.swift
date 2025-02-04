@@ -12,29 +12,29 @@ import Vapor
 // MARK: - ExerciseRatingController
 
 struct ExerciseRatingController: RouteCollection {
+  typealias API = RatingsAPI
+
+  private let repository: ExerciseRatingRepositoryProtocol
+
+  init(repository: ExerciseRatingRepositoryProtocol = ExerciseRatingRepository()) {
+    self.repository = repository
+  }
+
   func boot(routes: any RoutesBuilder) throws {
     let route = routes.apiV1Group("ratings")
       .grouped(Token.authenticator())
 
-    route.get(":exerciseID", use: { try await self.getByExerciseID(req: $0) })
+    route.get(RatingsAPI.GET.getByExerciseID, use: { try await self.getByExerciseID(req: $0) })
     route.get(use: { try await getAllForCurrentUser(req: $0) })
     route.post(use: { try await addRating(req: $0) })
   }
 
   func addRating(req: Request) async throws -> HTTPStatus {
     let currentUser = try req.auth.require(User.self)
-    let content = try req.content.decode(CreateContent.self)
+    let content = try req.content.decode(RatingsAPI.POST.CreateExerciseRating.self)
 
-    let exerciseRating = ExerciseRating()
-    exerciseRating.id = content.ratingID
-    exerciseRating.isPublic = content.isPublic
-    exerciseRating.rating = content.rating
-    exerciseRating.comment = content.comment
+    try await repository.addRatingFromContent(content, user: currentUser, on: req.db)
 
-    exerciseRating.$user.id = try currentUser.requireID()
-    exerciseRating.$exercise.id = content.exerciseID
-
-    try await exerciseRating.save(on: req.db)
     return .created
   }
 
@@ -42,30 +42,11 @@ struct ExerciseRatingController: RouteCollection {
     guard let exerciseID = req.parameters.get("exerciseID", as: UUID.self) else {
       throw Abort(.badRequest)
     }
-
-    return try await ExerciseRating.query(on: req.db)
-      .filter(\.$exercise.$id == exerciseID)
-      .all()
-      .map { try $0.asPublic() }
+    return try await repository.getForExerciseID(exerciseID, on: req.db)
   }
 
   func getAllForCurrentUser(req: Request) async throws -> [ExerciseRating.Public] {
     let currentUser = try req.auth.require(User.self)
-    return try await ExerciseRating.query(on: req.db)
-      .filter(\.$user.$id == currentUser.requireID())
-      .all()
-      .map { try $0.asPublic() }
-  }
-}
-
-// MARK: ExerciseRatingController.CreateContent
-
-extension ExerciseRatingController {
-  struct CreateContent: Content {
-    let ratingID: UUID
-    let exerciseID: UUID
-    let rating: Double
-    let comment: String?
-    let isPublic: Bool
+    return try await repository.getAllForUser(currentUser, on: req.db)
   }
 }
