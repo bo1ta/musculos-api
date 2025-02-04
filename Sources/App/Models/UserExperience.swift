@@ -9,6 +9,8 @@ import Fluent
 import Foundation
 import Vapor
 
+// MARK: - UserExperience
+
 final class UserExperience: Model, Content, @unchecked Sendable {
   static let schema = "user_experience"
 
@@ -32,8 +34,7 @@ extension UserExperience {
     .init(
       id: id,
       totalExperience: totalExperience,
-      experienceEntries: experienceEntries
-    )
+      experienceEntries: experienceEntries)
   }
 
   struct Public: Content {

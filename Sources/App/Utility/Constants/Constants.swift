@@ -6,5 +6,5 @@
 //
 
 enum Constants {
-  static let defaultCacheAge: Int = 60 * 30 // 30 minutes
+  static let defaultCacheAge = 60 * 30 // 30 minutes
 }

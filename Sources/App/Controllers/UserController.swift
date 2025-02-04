@@ -44,7 +44,14 @@ struct UserController: RouteCollection {
     let user = try req.auth.require(User.self)
     let request = try req.content.decode(API.POST.UpdateUser.self)
 
-    return try await repository.updateUser(user, weight: request.weight, height: request.height, level: request.level, isOnboarded: request.isOnboarded, primaryGoalID: request.primaryGoalID, on: req.db)
+    return try await repository.updateUser(
+      user,
+      weight: request.weight,
+      height: request.height,
+      level: request.level,
+      isOnboarded: request.isOnboarded,
+      primaryGoalID: request.primaryGoalID,
+      on: req.db)
   }
 
   func register(_ req: Request) async throws -> UserSession {

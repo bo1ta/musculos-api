@@ -8,7 +8,7 @@
 import Vapor
 
 enum ExerciseSessionsAPI: EndpointAPI {
-  public static let endpoint: String = "exercise-session"
+  public static let endpoint = "exercise-session"
 
   enum POST {
     struct CreateExerciseSession: Content {

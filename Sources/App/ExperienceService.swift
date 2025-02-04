@@ -21,9 +21,11 @@ enum ExperienceService {
   }
 
   private static func fetchOrCreateUserExperience(for user: User, on db: Database) async throws -> UserExperience {
-    if let existingExperience = try await UserExperience.query(on: db)
-      .filter(\.$user.$id == user.id!)
-      .first() {
+    if
+      let existingExperience = try await UserExperience.query(on: db)
+        .filter(\.$user.$id == user.id!)
+        .first()
+    {
       return existingExperience
     } else {
       let userExperience = UserExperience()
@@ -34,8 +36,16 @@ enum ExperienceService {
     }
   }
 
-  private static func createExperienceEntry(for session: ExerciseSession, userExperience: UserExperience, on db: Database) async throws -> UserExperienceEntry {
-    let xpEntry = UserExperienceEntry(userExperienceID: try userExperience.requireID(), exerciseSessionID: try session.requireID(), xpGained: calculateExperience(for: session.exercise, session: session))
+  private static func createExperienceEntry(
+    for session: ExerciseSession,
+    userExperience: UserExperience,
+    on db: Database)
+    async throws -> UserExperienceEntry
+  {
+    let xpEntry = UserExperienceEntry(
+      userExperienceID: try userExperience.requireID(),
+      exerciseSessionID: try session.requireID(),
+      xpGained: calculateExperience(for: session.exercise, session: session))
     try await xpEntry.save(on: db)
     return xpEntry
   }

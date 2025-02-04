@@ -5,13 +5,23 @@
 //  Created by Solomon Alexandru on 04.02.2025.
 //
 
-import Vapor
 import Fluent
+import Vapor
+
+// MARK: - ExerciseSessionRepositoryProtocol
 
 protocol ExerciseSessionRepositoryProtocol: Sendable {
   func getAllForUser(_ user: User, on db: Database) async throws -> [ExerciseSession.Public]
-  func createExerciseSession(_ sessionID: UUID, dateAdded: Date, duration: Double, exerciseID: UUID, user: User, on db: Database) async throws -> UserExperienceEntry
+  func createExerciseSession(
+    _ sessionID: UUID,
+    dateAdded: Date,
+    duration: Double,
+    exerciseID: UUID,
+    user: User,
+    on db: Database) async throws -> UserExperienceEntry
 }
+
+// MARK: - ExerciseSessionRepository
 
 struct ExerciseSessionRepository: ExerciseSessionRepositoryProtocol {
   func getAllForUser(_ user: User, on db: Database) async throws -> [ExerciseSession.Public] {
@@ -23,9 +33,22 @@ struct ExerciseSessionRepository: ExerciseSessionRepositoryProtocol {
       .all()
       .map { try $0.asPublic() }
   }
-  
-  func createExerciseSession(_ sessionID: UUID, dateAdded: Date, duration: Double, exerciseID: UUID, user: User, on db: Database) async throws -> UserExperienceEntry {
-    let session = ExerciseSession(id: sessionID, dateAdded: dateAdded, duration: duration, userID: try user.requireID(), exerciseID: exerciseID)
+
+  func createExerciseSession(
+    _ sessionID: UUID,
+    dateAdded: Date,
+    duration: Double,
+    exerciseID: UUID,
+    user: User,
+    on db: Database)
+    async throws -> UserExperienceEntry
+  {
+    let session = ExerciseSession(
+      id: sessionID,
+      dateAdded: dateAdded,
+      duration: duration,
+      userID: try user.requireID(),
+      exerciseID: exerciseID)
     try await session.save(on: db)
 
     try await session.$user.load(on: db)

@@ -34,7 +34,13 @@ struct ExerciseSessionController: RouteCollection {
   func create(req: Request) async throws -> UserExperienceEntry {
     let currentUser = try req.auth.require(User.self)
     let request = try req.content.decode(API.POST.CreateExerciseSession.self)
-    
-    return try await repository.createExerciseSession(request.sessionID, dateAdded: request.dateAdded, duration: request.duration, exerciseID: request.exerciseID, user: currentUser, on: req.db)
+
+    return try await repository.createExerciseSession(
+      request.sessionID,
+      dateAdded: request.dateAdded,
+      duration: request.duration,
+      exerciseID: request.exerciseID,
+      user: currentUser,
+      on: req.db)
   }
 }

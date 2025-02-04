@@ -8,7 +8,7 @@
 import Vapor
 
 enum ExercisesAPI: EndpointAPI {
-  public static let endpoint: String = "exercises"
+  public static let endpoint = "exercises"
 
   enum GET {
     static let getByID: PathComponent = ":exerciseID"

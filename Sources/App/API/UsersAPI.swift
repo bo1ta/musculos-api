@@ -8,7 +8,7 @@
 import Vapor
 
 enum UsersAPI: EndpointAPI {
-  public static let endpoint: String = "users"
+  public static let endpoint = "users"
 
   enum POST {
     static let register: PathComponent = "register"

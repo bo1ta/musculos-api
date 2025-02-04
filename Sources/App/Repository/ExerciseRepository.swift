@@ -5,8 +5,10 @@
 //  Created by Solomon Alexandru on 04.02.2025.
 //
 
-import Vapor
 import Fluent
+import Vapor
+
+// MARK: - ExerciseRepositoryProtocol
 
 protocol ExerciseRepositoryProtocol: Sendable {
   func getAll(limit: Int, on db: Database) async throws -> [Exercise]
@@ -22,6 +24,8 @@ protocol ExerciseRepositoryProtocol: Sendable {
   func getUserFavorites(_ user: User, on db: Database) async throws -> [Exercise]
   func getByWorkoutGoal(_ workoutGoal: WorkoutGoal, on db: Database) async throws -> [Exercise.Public]
 }
+
+// MARK: - ExerciseRepository
 
 struct ExerciseRepository: ExerciseRepositoryProtocol {
   func getAll(limit: Int, on db: Database) async throws -> [Exercise] {
@@ -114,7 +118,7 @@ struct ExerciseRepository: ExerciseRepositoryProtocol {
   }
 
   func getUserFavorites(_ user: User, on db: Database) async throws -> [Exercise] {
-    return try await user.$favoriteExercises.get(on: db)
+    try await user.$favoriteExercises.get(on: db)
   }
 
   func getByWorkoutGoal(_ workoutGoal: WorkoutGoal, on db: Database) async throws -> [Exercise.Public] {

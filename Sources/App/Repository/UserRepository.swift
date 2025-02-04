@@ -9,11 +9,22 @@ import Fluent
 import JWT
 import Vapor
 
+// MARK: - UserRepositoryProtoocol
+
 protocol UserRepositoryProtoocol: Sendable {
   func register(username: String, email: String, password: String, on db: Database) async throws -> UserSession
   func login(email: String, password: String, on db: Database) async throws -> UserSession
-  func updateUser(_ user: User, weight: Double?, height: Double?, level: String?, isOnboarded: Bool?, primaryGoalID: UUID?, on db: Database) async throws -> User.Public
+  func updateUser(
+    _ user: User,
+    weight: Double?,
+    height: Double?,
+    level: String?,
+    isOnboarded: Bool?,
+    primaryGoalID: UUID?,
+    on db: Database) async throws -> User.Public
 }
+
+// MARK: - UserRepository
 
 struct UserRepository: UserRepositoryProtoocol {
   func register(username: String, email: String, password: String, on db: Database) async throws -> UserSession {
@@ -30,7 +41,8 @@ struct UserRepository: UserRepositoryProtoocol {
   }
 
   func login(email: String, password: String, on db: Database) async throws -> UserSession {
-    guard let user = try await User.query(on: db)
+    guard
+      let user = try await User.query(on: db)
         .filter(\.$email == email)
         .first()
     else {
@@ -47,7 +59,16 @@ struct UserRepository: UserRepositoryProtoocol {
     return UserSession(token: token.asPublic(), user: user.asPublic())
   }
 
-  func updateUser(_ user: User, weight: Double?, height: Double?, level: String?, isOnboarded: Bool?, primaryGoalID: UUID?, on db: Database) async throws -> User.Public {
+  func updateUser(
+    _ user: User,
+    weight: Double?,
+    height: Double?,
+    level: String?,
+    isOnboarded: Bool?,
+    primaryGoalID: UUID?,
+    on db: Database)
+    async throws -> User.Public
+  {
     if let weight {
       user.weight = weight
     }
@@ -68,6 +89,8 @@ struct UserRepository: UserRepositoryProtoocol {
     return user.asPublic()
   }
 }
+
+// MARK: - UserSession
 
 struct UserSession: Content {
   let token: Token.Public
