@@ -11,12 +11,6 @@ import Vapor
 struct ExerciseSessionController: RouteCollection {
   typealias API = ExerciseSessionsAPI
 
-  private let repository: ExerciseSessionRepositoryProtocol
-
-  init(repository: ExerciseSessionRepositoryProtocol = ExerciseSessionRepository()) {
-    self.repository = repository
-  }
-
   func boot(routes: any RoutesBuilder) throws {
     let route = routes.apiV1Group("exercise-session")
       .grouped(
@@ -28,19 +22,18 @@ struct ExerciseSessionController: RouteCollection {
 
   func getAll(req: Request) async throws -> [ExerciseSession.Public] {
     let currentUser = try req.auth.require(User.self)
-    return try await repository.getAllForUser(currentUser, on: req.db)
+    return try await req.exerciseSessionService.getAllForUser(currentUser)
   }
 
   func create(req: Request) async throws -> UserExperienceEntry {
     let currentUser = try req.auth.require(User.self)
     let request = try req.content.decode(API.POST.CreateExerciseSession.self)
 
-    return try await repository.createExerciseSession(
+    return try await req.exerciseSessionService.createExerciseSession(
       request.sessionID,
       dateAdded: request.dateAdded,
       duration: request.duration,
       exerciseID: request.exerciseID,
-      user: currentUser,
-      on: req.db)
+      user: currentUser)
   }
 }

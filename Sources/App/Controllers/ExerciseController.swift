@@ -12,12 +12,6 @@ import Vapor
 struct ExerciseController: RouteCollection, Sendable {
   typealias API = ExercisesAPI
 
-  private let repository: ExerciseRepositoryProtocol
-
-  init(repository: ExerciseRepositoryProtocol = ExerciseRepository()) {
-    self.repository = repository
-  }
-
   func boot(routes: any RoutesBuilder) throws {
     let exerciseRoute = routes
       .apiV1Group(API.endpoint)
@@ -37,7 +31,7 @@ struct ExerciseController: RouteCollection, Sendable {
 
   func index(req: Request) async throws -> Response {
     let currentUser = try req.auth.require(User.self)
-    let exercises = try await repository.getExercisesForUser(currentUser, limit: 20, on: req.db)
+    let exercises = try await req.exerciseService.getExercisesForUser(currentUser, limit: 20)
     return try Response.withCacheControl(maxAge: Constants.defaultCacheAge, data: exercises)
   }
 
@@ -47,7 +41,7 @@ struct ExerciseController: RouteCollection, Sendable {
     guard let exerciseID = req.parameters.get("exerciseID", as: UUID.self) else {
       throw Abort(.badRequest)
     }
-    return try await repository.getExerciseForUser(currentUser, exerciseID: exerciseID, on: req.db)
+    return try await req.exerciseService.getExerciseForUser(currentUser, exerciseID: exerciseID)
   }
 
   func getFilteredExercises(req: Request) async throws -> Response {
@@ -59,37 +53,36 @@ struct ExerciseController: RouteCollection, Sendable {
       throw Abort(.badRequest, reason: "At least one filter parameter (muscle, muscleGroup, or name) is required.")
     }
 
-    let exercises = try await repository.getFiltered(muscle: muscle, muscleGroup: muscleGroup, name: name, on: req.db)
+    let exercises = try await req.exerciseService.getFiltered(muscle: muscle, muscleGroup: muscleGroup, name: name)
     return try Response.withCacheControl(maxAge: Constants.defaultCacheAge, data: exercises)
   }
 
   func create(req: Request) async throws -> Exercise {
     let exercise = try req.content.decode(Exercise.self)
-    return try await repository.create(exercise, on: req.db)
+    return try await req.exerciseService.create(exercise)
   }
 
   func favoriteExercise(req: Request) async throws -> Exercise {
     let currentUser = try req.auth.require(User.self)
     let favoriteRequest = try req.content.decode(API.POST.FavoriteExercise.self)
 
-    return try await repository.setIsFavorite(
+    return try await req.exerciseService.setIsFavorite(
       favoriteRequest.exerciseID,
       isFavorite: favoriteRequest.isFavorite,
-      user: currentUser,
-      on: req.db)
+      user: currentUser)
   }
 
   func isFavoriteExercise(req: Request) async throws -> (exerciseID: UUID, isFavorite: Bool) {
     let currentUser = try req.auth.require(User.self)
     let request = try req.content.decode(API.GET.IsFavoriteExercise.self)
 
-    let isFavorite = try await repository.isFavorite(exerciseID: request.exerciseID, for: currentUser, on: req.db)
+    let isFavorite = try await req.exerciseService.isFavorite(exerciseID: request.exerciseID, for: currentUser)
     return (exerciseID: request.exerciseID, isFavorite: isFavorite)
   }
 
   func getFavorites(req: Request) async throws -> [Exercise] {
     let currentUser = try req.auth.require(User.self)
-    return try await repository.getUserFavorites(currentUser, on: req.db)
+    return try await req.exerciseService.getUserFavorites(currentUser)
   }
 
   func delete(req: Request) async throws -> HTTPStatus {
@@ -97,13 +90,13 @@ struct ExerciseController: RouteCollection, Sendable {
       throw Abort(.notFound)
     }
 
-    try await repository.delete(exerciseID, on: req.db)
+    try await req.exerciseService.delete(exerciseID)
     return .noContent
   }
 
   public func getExercisesByGoal(req: Request) async throws -> Response {
     let workoutGoal = try req.query.get(WorkoutGoal.self, at: "goal")
-    let exercises = try await repository.getByWorkoutGoal(workoutGoal, on: req.db)
+    let exercises = try await req.exerciseService.getByWorkoutGoal(workoutGoal)
     return try Response.withCacheControl(maxAge: 1800, data: exercises)
   }
 }

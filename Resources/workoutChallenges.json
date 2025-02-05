@@ -1,0 +1,102 @@
+[
+  {
+    "title": "Iron Warrior 6-Week Challenge",
+    "description": "A hardcore strength and powerlifting challenge to build raw strength and muscle.",
+    "level": "advanced",
+    "durationInDays": 42,
+    "exerciseCategories": ["strength", "powerlifting"],
+    "equipmentTypes": ["barbell", "dumbbell", "machine"],
+    "exercisesPerDay": 6,
+    "restDayFrequency": 7
+  },
+  {
+    "title": "The Spartan Endurance Trial",
+    "description": "Push your limits with this intense endurance and cardio-based challenge.",
+    "level": "intermediate",
+    "durationInDays": 30,
+    "exerciseCategories": ["cardio", "plyometrics", "strength"],
+    "equipmentTypes": ["body only", "medicine ball", "exercise ball"],
+    "exercisesPerDay": 7,
+    "restDayFrequency": 10
+  },
+  {
+    "title": "Gladiator Strongman Circuit",
+    "description": "A strength and strongman challenge focusing on functional strength and resilience.",
+    "level": "advanced",
+    "durationInDays": 45,
+    "exerciseCategories": ["strongman", "strength"],
+    "equipmentTypes": ["barbell", "kettlebells", "other"],
+    "exercisesPerDay": 5,
+    "restDayFrequency": 7
+  },
+  {
+    "title": "The Shredder 4-Week Fat Burn",
+    "description": "A high-intensity mix of cardio and strength to help you cut fat and get lean.",
+    "level": "intermediate",
+    "durationInDays": 28,
+    "exerciseCategories": ["cardio", "strength", "plyometrics"],
+    "equipmentTypes": ["cable", "body only", "bands"],
+    "exercisesPerDay": 6,
+    "restDayFrequency": 7
+  },
+  {
+    "title": "Zen Mobility & Flexibility Reset",
+    "description": "A 21-day program to enhance flexibility, mobility, and overall body recovery.",
+    "level": "beginner",
+    "durationInDays": 21,
+    "exerciseCategories": ["stretching"],
+    "equipmentTypes": ["foam roll", "exercise ball", "other"],
+    "exercisesPerDay": 4,
+    "restDayFrequency": 5
+  },
+  {
+    "title": "Titan's Olympic Weightlifting Mastery",
+    "description": "Master the snatch and clean & jerk with this Olympic weightlifting challenge.",
+    "level": "advanced",
+    "durationInDays": 40,
+    "exerciseCategories": ["olympic weightlifting", "strength"],
+    "equipmentTypes": ["barbell", "ez curl bar", "machine"],
+    "exercisesPerDay": 5,
+    "restDayFrequency": 6
+  },
+  {
+    "title": "Primal Kettlebell Domination",
+    "description": "A full-body kettlebell challenge to build strength, endurance, and agility.",
+    "level": "intermediate",
+    "durationInDays": 30,
+    "exerciseCategories": ["strength", "cardio"],
+    "equipmentTypes": ["kettlebells"],
+    "exercisesPerDay": 6,
+    "restDayFrequency": 7
+  },
+  {
+    "title": "Bodyweight Beast 30-Day Challenge",
+    "description": "No equipment needed! Build muscle and endurance using only your bodyweight.",
+    "level": "beginner",
+    "durationInDays": 30,
+    "exerciseCategories": ["strength", "plyometrics", "cardio"],
+    "equipmentTypes": ["body only"],
+    "exercisesPerDay": 5,
+    "restDayFrequency": 7
+  },
+  {
+    "title": "The Unbreakable Core",
+    "description": "A specialized program to strengthen your core and improve stability.",
+    "level": "all levels",
+    "durationInDays": 21,
+    "exerciseCategories": ["strength", "stretching"],
+    "equipmentTypes": ["medicine ball", "exercise ball", "bands"],
+    "exercisesPerDay": 4,
+    "restDayFrequency": 5
+  },
+  {
+    "title": "Combat Athlete Conditioning",
+    "description": "Train like a fighter with this explosive power and endurance challenge.",
+    "level": "advanced",
+    "durationInDays": 35,
+    "exerciseCategories": ["strength", "plyometrics", "cardio"],
+    "equipmentTypes": ["body only", "medicine ball", "dumbbell"],
+    "exercisesPerDay": 6,
+    "restDayFrequency": 6
+  }
+]

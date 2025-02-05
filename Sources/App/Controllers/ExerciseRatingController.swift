@@ -14,12 +14,6 @@ import Vapor
 struct ExerciseRatingController: RouteCollection {
   typealias API = RatingsAPI
 
-  private let repository: ExerciseRatingRepositoryProtocol
-
-  init(repository: ExerciseRatingRepositoryProtocol = ExerciseRatingRepository()) {
-    self.repository = repository
-  }
-
   func boot(routes: any RoutesBuilder) throws {
     let route = routes.apiV1Group("ratings")
       .grouped(Token.authenticator())
@@ -33,7 +27,7 @@ struct ExerciseRatingController: RouteCollection {
     let currentUser = try req.auth.require(User.self)
     let content = try req.content.decode(RatingsAPI.POST.CreateExerciseRating.self)
 
-    try await repository.addRatingFromContent(content, user: currentUser, on: req.db)
+    try await req.ratingService.addRatingFromContent(content, user: currentUser)
 
     return .created
   }
@@ -42,11 +36,11 @@ struct ExerciseRatingController: RouteCollection {
     guard let exerciseID = req.parameters.get("exerciseID", as: UUID.self) else {
       throw Abort(.badRequest)
     }
-    return try await repository.getForExerciseID(exerciseID, on: req.db)
+    return try await req.ratingService.getForExerciseID(exerciseID)
   }
 
   func getAllForCurrentUser(req: Request) async throws -> [ExerciseRating.Public] {
     let currentUser = try req.auth.require(User.self)
-    return try await repository.getAllForUser(currentUser, on: req.db)
+    return try await req.ratingService.getAllForUser(currentUser)
   }
 }

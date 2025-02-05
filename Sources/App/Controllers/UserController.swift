@@ -14,12 +14,6 @@ import Vapor
 struct UserController: RouteCollection {
   typealias API = UsersAPI
 
-  private let repository: UserRepositoryProtoocol
-
-  init(repository: UserRepositoryProtoocol = UserRepository()) {
-    self.repository = repository
-  }
-
   func boot(routes: any RoutesBuilder) throws {
     let users = routes.apiV1Group(API.endpoint)
 
@@ -42,28 +36,27 @@ struct UserController: RouteCollection {
 
   func updateProfile(_ req: Request) async throws -> User.Public {
     let user = try req.auth.require(User.self)
-    let request = try req.content.decode(API.POST.UpdateUser.self)
+    let content = try req.content.decode(API.POST.UpdateUser.self)
 
-    return try await repository.updateUser(
+    return try await req.userService.updateUser(
       user,
-      weight: request.weight,
-      height: request.height,
-      level: request.level,
-      isOnboarded: request.isOnboarded,
-      primaryGoalID: request.primaryGoalID,
-      on: req.db)
+      weight: content.weight,
+      height: content.height,
+      level: content.level,
+      isOnboarded: content.isOnboarded,
+      primaryGoalID: content.primaryGoalID)
   }
 
   func register(_ req: Request) async throws -> UserSession {
     try API.POST.SignUp.validate(content: req)
 
     let request = try req.content.decode(User.SignUp.self)
-    return try await repository.register(username: request.username, email: request.email, password: request.password, on: req.db)
+    return try await req.userService.register(username: request.username, email: request.email, password: request.password)
   }
 
   func login(_ req: Request) async throws -> UserSession {
     let request = try req.content.decode(User.SignIn.self)
-    return try await repository.login(email: request.email, password: request.password, on: req.db)
+    return try await req.userService.login(email: request.email, password: request.password)
   }
 
   func getMyProfile(_ req: Request) async throws -> User.Public {

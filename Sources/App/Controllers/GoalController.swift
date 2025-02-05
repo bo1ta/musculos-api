@@ -11,12 +11,6 @@ import Vapor
 struct GoalController: RouteCollection {
   typealias API = GoalsAPI
 
-  private let repository: GoalRepositoryProtocol
-
-  init(repository: GoalRepositoryProtocol = GoalRepository()) {
-    self.repository = repository
-  }
-
   func boot(routes: any RoutesBuilder) throws {
     let route = routes.apiV1Group(API.endpoint)
       .grouped(Token.authenticator())
@@ -30,25 +24,25 @@ struct GoalController: RouteCollection {
 
   func index(req: Request) async throws -> [Goal.Public] {
     let currentUser = try req.auth.require(User.self)
-    return try await repository.getAllForUser(currentUser, on: req.db)
+    return try await req.goalService.getAllForUser(currentUser)
   }
 
   func getByID(req: Request) async throws -> Goal {
     guard let goalID = req.parameters.get("goalID", as: UUID.self) else {
       throw Abort(.badRequest)
     }
-    return try await repository.getByID(goalID, on: req.db)
+    return try await req.goalService.getByID(goalID)
   }
 
   func create(req: Request) async throws -> Goal {
     let currentUser = try req.auth.require(User.self)
     let request = try req.content.decode(API.POST.CreateGoal.self)
-    return try await repository.addGoalForUser(currentUser, content: request, on: req.db)
+    return try await req.goalService.addGoalForUser(currentUser, content: request)
   }
 
   func addProgressEntry(req: Request) async throws -> HTTPStatus {
     let content = try req.content.decode(API.POST.CreateProgressEntry.self)
-    try await repository.addProgressEntry(content: content, on: req.db)
+    try await req.goalService.addProgressEntry(content: content)
     return .created
   }
 }
