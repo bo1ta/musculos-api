@@ -60,6 +60,6 @@ struct UserController: RouteCollection {
   }
 
   func getMyProfile(_ req: Request) async throws -> User.Public {
-    try req.auth.require(User.self).asPublic()
+    try await req.userService.getCurrentUser()
   }
 }

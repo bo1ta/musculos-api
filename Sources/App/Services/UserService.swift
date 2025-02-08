@@ -73,7 +73,7 @@ struct UserService: UserServiceProtocol {
     level: String?,
     isOnboarded: Bool?,
     primaryGoalID: UUID?)
-    async throws -> User.Public
+  async throws -> User.Public
   {
     if let weight {
       user.weight = weight
@@ -96,7 +96,11 @@ struct UserService: UserServiceProtocol {
   }
 
   func getByID(_ userID: UUID) async throws -> User.Public {
-    guard let user = try await User.find(userID, on: req.db) else {
+    guard let user = try await User.query(on: req.db)
+      .filter(\.$id == userID)
+      .with(\.$userExperience)
+      .first()
+    else {
       throw Abort(.notFound, reason: "User not found")
     }
     return user.asPublic()

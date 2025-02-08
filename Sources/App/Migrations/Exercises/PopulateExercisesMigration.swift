@@ -29,10 +29,7 @@ final class PopulateExercisesMigration: AsyncMigration {
     do {
       let data = try Data(contentsOf: URL(fileURLWithPath: dataFilePath))
       let exercises = try Exercise.createArrayFrom(data)
-
-      try await exercises.asyncForEach { exercise in
-        try await exercise.create(on: database)
-      }
+      try await exercises.create(on: database)
     } catch {
       throw Abort(.notFound)
     }

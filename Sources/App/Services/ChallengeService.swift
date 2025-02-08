@@ -24,11 +24,21 @@ struct ChallengeService: ChallengeServiceProtocol {
   }
 
   func generateFromInput(_ input: ChallengesAPI.POST.GenerateChallengeInput) async throws -> WorkoutChallenge {
-    try await req.db.transaction { transaction in
+    let exercises = try await req.exerciseService.getByLevel(
+      input.level,
+      categories: input.exerciseCategories,
+      equipmentTypes: input.equipmentTypes)
+
+    return try await req.db.transaction { transaction in
       let challenge = try await createWorkoutChallenge(from: input, on: transaction)
-      let exercises = try await req.exerciseService.getByLevel(input.level, categories: input.exerciseCategories, equipmentTypes: input.equipmentTypes)
 
       try await generateDailyWorkouts(for: challenge, exercises: exercises, input: input, on: transaction)
+
+      try await challenge.$dailyWorkouts.load(on: transaction)
+
+      for dailyWorkout in challenge.dailyWorkouts {
+        try await dailyWorkout.$workoutExercises.load(on: transaction)
+      }
 
       return challenge
     }
@@ -84,6 +94,7 @@ extension ChallengeService {
     let shuffledExercises = exercises.shuffled()
     let dayExercises = Array(shuffledExercises.prefix(input.exercisesPerDay))
 
+    var workoutExercises: [WorkoutExercise] = []
     for exercise in dayExercises {
       let workoutExercise = try WorkoutExercise(
         dailyWorkoutID: dailyWorkout.requireID(),
@@ -93,9 +104,10 @@ extension ChallengeService {
         minValue: generateMinValue(level: input.level),
         maxValue: generateMaxValue(level: input.level),
         measurement: determineMeasurement(for: exercise))
-
-      try await workoutExercise.create(on: db)
+      workoutExercises.append(workoutExercise)
     }
+
+    try await workoutExercises.create(on: db)
   }
 
   // MARK: Utility methods
