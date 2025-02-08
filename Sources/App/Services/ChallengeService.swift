@@ -34,13 +34,20 @@ struct ChallengeService: ChallengeServiceProtocol {
 
       try await generateDailyWorkouts(for: challenge, exercises: exercises, input: input, on: transaction)
 
-      try await challenge.$dailyWorkouts.load(on: transaction)
+      let fullyLoadedChallenge = try await WorkoutChallenge.query(on: transaction)
+        .filter(\.$id == challenge.id!)
+        .with(\.$dailyWorkouts) { dailyWorkouts in
+          dailyWorkouts.with(\.$workoutExercises) { workoutExercises in
+            workoutExercises.with(\.$exercise)
+          }
+        }
+        .first()
 
-      for dailyWorkout in challenge.dailyWorkouts {
-        try await dailyWorkout.$workoutExercises.load(on: transaction)
+      guard let fullyLoadedChallenge else {
+        throw Abort(.notFound, reason: "Challenge not found after creation")
       }
 
-      return challenge
+      return fullyLoadedChallenge
     }
   }
 }
